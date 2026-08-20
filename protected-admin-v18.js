@@ -16,9 +16,10 @@
  };
  const protectAccountUI=()=>{
    try{
-     const username=String(globalThis.state?.profile?.username||'').toLowerCase();
-     if(username!==PRIMARY)return;
      const input=document.getElementById('myUsername');
+     const identity=[...document.querySelectorAll('.accountIdentity span')].find(x=>String(x.textContent||'').trim().toLowerCase()==='@andre');
+     const username=String(input?.value||identity?.textContent||'').replace(/^@/,'').trim().toLowerCase();
+     if(username!==PRIMARY)return;
      if(input){input.value=PRIMARY;input.readOnly=true;input.classList.add('protectedAdminReadonly');}
      const card=[...document.querySelectorAll('.accountCard')].find(x=>/Segurança da conta/i.test(x.textContent||''));
      if(card&&!card.querySelector('.protectedAdminNotice')){

@@ -1,0 +1,1 @@
+A correção do modal está embutida em nilo-v25.js. Este arquivo apenas marca a restauração funcional V29.

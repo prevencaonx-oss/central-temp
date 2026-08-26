@@ -1,0 +1,1 @@
+Ajuste visual baseado nas 3 referências aprovadas pelo usuário em 26/08/2026: dashboard desktop, login desktop e login mobile. Regra: não alterar lógica funcional, Supabase, permissões, coletas, relatórios ou segurança; somente estrutura/apresentação visual.

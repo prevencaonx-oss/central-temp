@@ -1,4 +1,24 @@
 (()=>{
+ const safeShowModal=(html,closable=true)=>{
+  const host=document.getElementById('modalHost');
+  if(!host)return;
+  host.replaceChildren();
+  const overlay=document.createElement('div');
+  overlay.className='modal';
+  if(closable){overlay.addEventListener('click',ev=>{if(ev.target===overlay&&typeof window.closeModal==='function')window.closeModal()})}
+  const box=document.createElement('div');
+  box.className='modalBox';
+  box.innerHTML=String(html??'');
+  overlay.appendChild(box);
+  host.appendChild(overlay);
+ };
+ window.showModal=safeShowModal;
+ const reinforce=()=>{window.showModal=safeShowModal};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',reinforce,{once:true});else reinforce();
+ setTimeout(reinforce,0);
+})();
+
+(()=>{
  const run=()=>{
   const login=document.getElementById('loginPage');
   if(login){

@@ -1,0 +1,1 @@
+Restaurando index funcional com hotfix do modal.

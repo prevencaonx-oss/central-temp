@@ -1,0 +1,1 @@
+V29 restaura o index funcional da V25 e mantém a correção do modal em nilo-v25.js.

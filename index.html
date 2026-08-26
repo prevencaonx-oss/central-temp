@@ -21,23 +21,36 @@
  <div class="hero niloHero" aria-label="Marca Nilo Supermercado">
    <div class="heroBrandWrap">
      <img class="niloWordmark" src="assets/nilo-logo.webp" alt="Nilo Supermercado">
+     <div class="heroDivider"></div>
      <div class="heroSlogan">NO QUIETO NO QUIETO<br><strong>O NILO VENDE MAIS BARATO</strong></div>
-     <div class="heroPrevention"><b>Prevenção de perdas</b><span>Monitoramento, disciplina operacional e ação preventiva.</span></div>
+     <div class="heroDivider heroDividerBottom"></div>
+     <div class="loginFeatures desktopFeatures" aria-label="Destaques do sistema">
+       <div class="loginFeature"><span>🌡</span><small>Temperatura<br>em tempo real</small></div>
+       <div class="loginFeature"><span>🔔</span><small>Alertas<br>inteligentes</small></div>
+       <div class="loginFeature"><span>▥</span><small>Gestão por<br>loja</small></div>
+       <div class="loginFeature"><span>♢</span><small>Segurança e<br>confiabilidade</small></div>
+     </div>
    </div>
  </div>
  <div class="loginSide">
   <div class="loginBox niloLoginBox">
    <div class="loginBrandRow">
      <img class="loginMascot" src="assets/nilo-mascote.webp" alt="Mascote Nilo">
-     <div><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
+     <div class="loginBrandCopy"><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
    </div>
-   <h2>Acesso ao sistema</h2><div class="sub">Entre com o usuário e senha cadastrados.</div>
+   <div class="loginRule"></div>
    <label>Nome de usuário</label><input id="loginUsername" autocomplete="username" placeholder="Ex.: seu usuário">
    <label>Senha</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()">
    <button class="btn primary loginSubmit" style="width:100%;margin-top:17px" onclick="signIn()">Entrar</button>
    <div id="loginMsg" class="loginMsg"></div>
    <div class="secureNote">🔒 Acesso seguro e criptografado</div>
    <div id="configWarning" class="serverBox hidden"><b>Banco central ainda não conectado.</b><br>É necessário configurar a URL e a chave pública do banco.</div>
+  </div>
+  <div class="loginFeatures mobileFeatures" aria-label="Destaques do sistema">
+    <div class="loginFeature"><span>🌡</span><small>Temperatura<br>em tempo real</small></div>
+    <div class="loginFeature"><span>🔔</span><small>Alertas<br>inteligentes</small></div>
+    <div class="loginFeature"><span>▥</span><small>Gestão por<br>loja</small></div>
+    <div class="loginFeature"><span>♢</span><small>Segurança e<br>confiabilidade</small></div>
   </div>
  </div>
 </section>
@@ -47,7 +60,7 @@
   <div class="brand"><img class="sidebarLogo" src="assets/nilo-logo.webp" alt="Nilo Supermercado"><div class="brandText">CONTROLE DE<br><span>TEMPERATURA</span></div><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
   <div class="collectShortcut" id="collectShortcutHost"></div>
   <div id="navHost"></div>
-  <div class="sidebarSlogan">NO QUIETO NO QUIETO<br><strong>O NILO VENDE MAIS BARATO</strong></div>
+  <div class="sidebarPrevention"><span class="sidebarPreventionIcon">◇</span><div><b>PREVENÇÃO DE PERDAS</b><small>Monitoramento, disciplina operacional e ação preventiva.</small></div></div>
   <div class="sideUser">
     <div class="userBox">
       <div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div>

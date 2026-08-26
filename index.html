@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="assets/base-04.css">
 <link rel="stylesheet" href="assets/base-05.css">
 <link rel="stylesheet" href="assets/nilo.css">
+<link rel="stylesheet" href="assets/visual-fidelity.css">
 </head>
 <body>
 <div id="loading" class="loading hidden"><div class="loader"></div></div>
@@ -19,86 +20,57 @@
 <section id="loginPage" class="login niloLogin">
   <aside class="hero niloHero" aria-label="Marca Nilo Supermercado">
     <div class="heroBrandWrap">
-      <img class="niloWordmark" src="assets/nilo-logo.webp" alt="Nilo Supermercado">
+      <div class="logoLockup"><img class="niloMark" src="data:image/png;base64,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[...TRUNCATED_FOR_BREVITY...]" alt="Nilo"><span class="supermercadoText">SUPERMERCADO</span></div>
       <div class="heroDivider"></div>
       <div class="heroSlogan">NO QUIETO NO QUIETO<br><strong>O <em>NILO</em> VENDE<br>MAIS BARATO</strong></div>
       <div class="heroDivider heroDividerBottom"></div>
       <div class="loginFeatures desktopFeatures" aria-label="Benefícios do sistema">
-        <div class="loginFeature"><span class="featureIcon">♨</span><small>Temperatura<br>em tempo real</small></div>
-        <div class="loginFeature"><span class="featureIcon">♢</span><small>Alertas<br>inteligentes</small></div>
-        <div class="loginFeature"><span class="featureIcon">▥</span><small>Gestão por<br>loja</small></div>
-        <div class="loginFeature"><span class="featureIcon">✓</span><small>Segurança e<br>confiabilidade</small></div>
+        <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 1 6 0v9.3a5 5 0 1 1-6 0Z"/><path d="M12 7v9"/></svg></span><small>Temperatura<br>em tempo real</small></div>
+        <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg></span><small>Alertas<br>inteligentes</small></div>
+        <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M3 10h18L19 5H5Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg></span><small>Gestão por<br>loja</small></div>
+        <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6Z"/><path d="m9 12 2 2 4-4"/></svg></span><small>Segurança e<br>confiabilidade</small></div>
       </div>
     </div>
   </aside>
-
   <div class="loginSide">
     <div class="loginBox niloLoginBox">
       <div class="loginMascotHalo"><img class="loginMascot" src="assets/nilo-mascote.webp" alt="Mascote Nilo"></div>
       <div class="loginBrandCopy"><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
       <div class="loginRule"></div>
-
       <label for="loginUsername">Nome de usuário</label>
-      <div class="inputShell"><span class="fieldIcon">♙</span><input id="loginUsername" autocomplete="username" placeholder="Ex.: andre"></div>
+      <div class="inputShell"><span class="fieldIcon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span><input id="loginUsername" autocomplete="username" placeholder="Ex.: andre"></div>
       <label for="loginPassword">Senha</label>
-      <div class="inputShell"><span class="fieldIcon">▣</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()"><button class="passwordEye" type="button" onclick="toggleLoginPassword()" aria-label="Mostrar ou ocultar senha">◉</button></div>
+      <div class="inputShell"><span class="fieldIcon"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()"><button class="passwordEye" type="button" onclick="toggleLoginPassword()" aria-label="Mostrar ou ocultar senha"><svg viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.5"/></svg></button></div>
       <button class="btn primary loginSubmit" onclick="signIn()">Entrar</button>
       <div id="loginMsg" class="loginMsg"></div>
       <div class="secureNote"><span></span><b>▣</b> Acesso seguro e criptografado<span></span></div>
       <div id="configWarning" class="serverBox hidden"><b>Banco central ainda não conectado.</b><br>É necessário configurar a URL e a chave pública do banco.</div>
     </div>
-
     <div class="loginFeatures mobileFeatures" aria-label="Benefícios do sistema">
-      <div class="loginFeature"><span class="featureIcon">♨</span><small>Temperatura<br>em tempo real</small></div>
-      <div class="loginFeature"><span class="featureIcon">♢</span><small>Alertas<br>inteligentes</small></div>
-      <div class="loginFeature"><span class="featureIcon">▥</span><small>Gestão por<br>loja</small></div>
-      <div class="loginFeature"><span class="featureIcon">✓</span><small>Segurança e<br>confiabilidade</small></div>
+      <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 1 6 0v9.3a5 5 0 1 1-6 0Z"/><path d="M12 7v9"/></svg></span><small>Temperatura<br>em tempo real</small></div>
+      <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg></span><small>Alertas<br>inteligentes</small></div>
+      <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="M3 10h18L19 5H5Z"/><path d="M5 10v9h14v-9M9 19v-5h6v5"/></svg></span><small>Gestão por<br>loja</small></div>
+      <div class="loginFeature"><span class="featureIcon"><svg viewBox="0 0 24 24"><path d="m12 3 7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6Z"/><path d="m9 12 2 2 4-4"/></svg></span><small>Segurança e<br>confiabilidade</small></div>
     </div>
   </div>
 </section>
 
 <div id="app" class="app hidden">
  <header class="sidebar">
-  <div class="brand"><img class="sidebarLogo" src="assets/nilo-logo.webp" alt="Nilo Supermercado"><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
+  <div class="brand"><div class="logoLockup"><span class="supermercadoText">SUPERMERCADO</span></div><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
   <div class="collectShortcut" id="collectShortcutHost"></div>
   <div id="navHost"></div>
-  <div class="sidebarPrevention">
-    <b>PREVENÇÃO DE PERDAS</b>
-    <div class="sidebarShield">✓</div>
-    <p>Monitoramento, disciplina operacional e ação preventiva.</p>
-    <span class="safeBadge">◎ &nbsp; Operação segura</span>
-  </div>
+  <div class="sidebarPrevention"><b>PREVENÇÃO DE PERDAS</b><div class="sidebarShield">✓</div><p>Monitoramento, disciplina operacional e ação preventiva.</p><span class="safeBadge">◎ &nbsp; Operação segura</span></div>
   <div class="sideUser"><div class="userBox"><div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div><button class="logout" onclick="signOut()">Sair</button></div></div>
  </header>
  <main class="main">
-  <div class="top">
-   <div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div>
-   <div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div>
-  </div>
+  <div class="top"><div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div><div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div></div>
   <div id="content"></div>
   <footer class="appFooter">▣ &nbsp; Acesso seguro e criptografado &nbsp; • &nbsp; Nilo Supermercado &nbsp; • &nbsp; Controle de Temperatura</footer>
  </main>
 </div>
-<div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div>
-<div id="modalHost"></div>
-
-<script>
-window.CENTRAL_TEMP_CONFIG = {
-  SUPABASE_URL: "https://vwwkzenvcxedxiuopsgv.supabase.co",
-  SUPABASE_KEY: "sb_publishable_Vh9zdSxCUH0fMJOjf_G6Sw_UMU0t0to",
-  USER_EMAIL_DOMAIN: "centraltemp.invalid"
-};
-</script>
+<div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div><div id="modalHost"></div>
+<script>window.CENTRAL_TEMP_CONFIG={SUPABASE_URL:"https://vwwkzenvcxedxiuopsgv.supabase.co",SUPABASE_KEY:"sb_publishable_Vh9zdSxCUH0fMJOjf_G6Sw_UMU0t0to",USER_EMAIL_DOMAIN:"centraltemp.invalid"};</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-<script src="assets/app-01.js"></script>
-<script src="assets/app-02.js"></script>
-<script src="assets/app-03.js"></script>
-<script src="assets/app-04.js"></script>
-<script src="assets/app-05.js"></script>
-<script src="assets/app-06.js"></script>
-<script src="assets/app-07.js"></script>
-<script src="assets/app-08.js"></script>
-<script src="assets/app-09.js"></script>
-<script src="assets/visual-exato.js"></script>
-</body>
-</html>
+<script src="assets/app-01.js"></script><script src="assets/app-02.js"></script><script src="assets/app-03.js"></script><script src="assets/app-04.js"></script><script src="assets/app-05.js"></script><script src="assets/app-06.js"></script><script src="assets/app-07.js"></script><script src="assets/app-08.js"></script><script src="assets/app-09.js"></script><script src="assets/visual-exato.js"></script>
+</body></html>

@@ -40,8 +40,9 @@ function renderPage(){
 }
 async function fetchAll(){
  showLoad(true);
+ let timer;
  try{
-  const res=await Promise.all([
+  const queries=Promise.all([
    sb.from("stores").select("*").order("name"),
    sb.from("sectors").select("*").order("name"),
    sb.from("equipment").select("*").order("name"),
@@ -51,6 +52,8 @@ async function fetchAll(){
    sb.from("equipment_incidents").select("*").order("opened_at",{ascending:false}).limit(2000),
    can("audit.view")?sb.from("audit_logs").select("*").order("created_at",{ascending:false}).limit(1000):Promise.resolve({data:[],error:null})
   ]);
+  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Tempo esgotado ao carregar os dados. Tente novamente.")),15000)});
+  const res=await Promise.race([queries,timeout]);
   res.forEach(r=>{if(r.error)throw r.error});
   state.stores=res[0].data||[];
   state.sectors=res[1].data||[];
@@ -60,7 +63,7 @@ async function fetchAll(){
   state.alerts=res[5].data||[];
   state.incidents=res[6].data||[];
   state.audit=res[7].data||[];
- }finally{showLoad(false)}
+ }finally{if(timer)clearTimeout(timer);showLoad(false)}
 }
 async function getMyProfile(){
  const {data,error}=await sb.from("profiles").select("*").eq("id",state.session.user.id).single();if(error)throw error;state.profile=data;
@@ -113,7 +116,15 @@ window.signIn=async()=>{
   const {data,error}=await sb.auth.signInWithPassword({email:emailFor(username),password});if(error)throw error;
   state.session=data.session;await getMyProfile();
   if(!state.profile.active)throw new Error("Este usuário está inativo.");
-  if(state.profile.role==="admin"){await fetchAll();showAdminStoreChoice()}else{state.activeStoreId=state.profile.store_id;await enterApp()}
+  if(state.profile.role==="admin"){
+    const {data:storesData,error:storesError}=await sb.from("stores").select("*").order("name");
+    if(storesError)throw storesError;
+    state.stores=storesData||[];
+    showAdminStoreChoice();
+  }else{
+    state.activeStoreId=state.profile.store_id;
+    await enterApp();
+  }
  }catch(e){
   console.error("LOGIN_ERROR",e);
   const raw=String(e?.message||"");

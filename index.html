@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071f52">
+<meta name="theme-color" content="#06194a">
 <title>Controle de Temperatura | Nilo</title>
 <link rel="stylesheet" href="assets/base-01.css">
 <link rel="stylesheet" href="assets/base-02.css">
@@ -13,67 +13,70 @@
 <link rel="stylesheet" href="assets/nilo.css">
 </head>
 <body>
-
 <div id="loading" class="loading hidden"><div class="loader"></div></div>
 <div id="toast" class="toast hidden"></div>
 
 <section id="loginPage" class="login niloLogin">
- <div class="hero niloHero" aria-label="Marca Nilo Supermercado">
-   <div class="heroBrandWrap">
-     <img class="niloWordmark" src="assets/nilo-logo.webp" alt="Nilo Supermercado">
-     <div class="heroDivider"></div>
-     <div class="heroSlogan">NO QUIETO NO QUIETO<br><strong>O NILO VENDE MAIS BARATO</strong></div>
-     <div class="heroDivider heroDividerBottom"></div>
-     <div class="loginFeatures desktopFeatures" aria-label="Destaques do sistema">
-       <div class="loginFeature"><span>🌡</span><small>Temperatura<br>em tempo real</small></div>
-       <div class="loginFeature"><span>🔔</span><small>Alertas<br>inteligentes</small></div>
-       <div class="loginFeature"><span>▥</span><small>Gestão por<br>loja</small></div>
-       <div class="loginFeature"><span>♢</span><small>Segurança e<br>confiabilidade</small></div>
-     </div>
-   </div>
- </div>
- <div class="loginSide">
-  <div class="loginBox niloLoginBox">
-   <div class="loginBrandRow">
-     <img class="loginMascot" src="assets/nilo-mascote.webp" alt="Mascote Nilo">
-     <div class="loginBrandCopy"><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
-   </div>
-   <div class="loginRule"></div>
-   <label>Nome de usuário</label><input id="loginUsername" autocomplete="username" placeholder="Ex.: seu usuário">
-   <label>Senha</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()">
-   <button class="btn primary loginSubmit" style="width:100%;margin-top:17px" onclick="signIn()">Entrar</button>
-   <div id="loginMsg" class="loginMsg"></div>
-   <div class="secureNote">🔒 Acesso seguro e criptografado</div>
-   <div id="configWarning" class="serverBox hidden"><b>Banco central ainda não conectado.</b><br>É necessário configurar a URL e a chave pública do banco.</div>
+  <aside class="hero niloHero" aria-label="Marca Nilo Supermercado">
+    <div class="heroBrandWrap">
+      <img class="niloWordmark" src="assets/nilo-logo.webp" alt="Nilo Supermercado">
+      <div class="heroDivider"></div>
+      <div class="heroSlogan">NO QUIETO NO QUIETO<br><strong>O <em>NILO</em> VENDE<br>MAIS BARATO</strong></div>
+      <div class="heroDivider heroDividerBottom"></div>
+      <div class="loginFeatures desktopFeatures" aria-label="Benefícios do sistema">
+        <div class="loginFeature"><span class="featureIcon">♨</span><small>Temperatura<br>em tempo real</small></div>
+        <div class="loginFeature"><span class="featureIcon">♢</span><small>Alertas<br>inteligentes</small></div>
+        <div class="loginFeature"><span class="featureIcon">▥</span><small>Gestão por<br>loja</small></div>
+        <div class="loginFeature"><span class="featureIcon">✓</span><small>Segurança e<br>confiabilidade</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="loginSide">
+    <div class="loginBox niloLoginBox">
+      <div class="loginMascotHalo"><img class="loginMascot" src="assets/nilo-mascote.webp" alt="Mascote Nilo"></div>
+      <div class="loginBrandCopy"><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
+      <div class="loginRule"></div>
+
+      <label for="loginUsername">Nome de usuário</label>
+      <div class="inputShell"><span class="fieldIcon">♙</span><input id="loginUsername" autocomplete="username" placeholder="Ex.: andre"></div>
+      <label for="loginPassword">Senha</label>
+      <div class="inputShell"><span class="fieldIcon">▣</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()"><button class="passwordEye" type="button" onclick="toggleLoginPassword()" aria-label="Mostrar ou ocultar senha">◉</button></div>
+      <button class="btn primary loginSubmit" onclick="signIn()">Entrar</button>
+      <div id="loginMsg" class="loginMsg"></div>
+      <div class="secureNote"><span></span><b>▣</b> Acesso seguro e criptografado<span></span></div>
+      <div id="configWarning" class="serverBox hidden"><b>Banco central ainda não conectado.</b><br>É necessário configurar a URL e a chave pública do banco.</div>
+    </div>
+
+    <div class="loginFeatures mobileFeatures" aria-label="Benefícios do sistema">
+      <div class="loginFeature"><span class="featureIcon">♨</span><small>Temperatura<br>em tempo real</small></div>
+      <div class="loginFeature"><span class="featureIcon">♢</span><small>Alertas<br>inteligentes</small></div>
+      <div class="loginFeature"><span class="featureIcon">▥</span><small>Gestão por<br>loja</small></div>
+      <div class="loginFeature"><span class="featureIcon">✓</span><small>Segurança e<br>confiabilidade</small></div>
+    </div>
   </div>
-  <div class="loginFeatures mobileFeatures" aria-label="Destaques do sistema">
-    <div class="loginFeature"><span>🌡</span><small>Temperatura<br>em tempo real</small></div>
-    <div class="loginFeature"><span>🔔</span><small>Alertas<br>inteligentes</small></div>
-    <div class="loginFeature"><span>▥</span><small>Gestão por<br>loja</small></div>
-    <div class="loginFeature"><span>♢</span><small>Segurança e<br>confiabilidade</small></div>
-  </div>
- </div>
 </section>
 
 <div id="app" class="app hidden">
  <header class="sidebar">
-  <div class="brand"><img class="sidebarLogo" src="assets/nilo-logo.webp" alt="Nilo Supermercado"><div class="brandText">CONTROLE DE<br><span>TEMPERATURA</span></div><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
+  <div class="brand"><img class="sidebarLogo" src="assets/nilo-logo.webp" alt="Nilo Supermercado"><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
   <div class="collectShortcut" id="collectShortcutHost"></div>
   <div id="navHost"></div>
-  <div class="sidebarPrevention"><span class="sidebarPreventionIcon">◇</span><div><b>PREVENÇÃO DE PERDAS</b><small>Monitoramento, disciplina operacional e ação preventiva.</small></div></div>
-  <div class="sideUser">
-    <div class="userBox">
-      <div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div>
-      <button class="logout" onclick="signOut()">Sair</button>
-    </div>
+  <div class="sidebarPrevention">
+    <b>PREVENÇÃO DE PERDAS</b>
+    <div class="sidebarShield">✓</div>
+    <p>Monitoramento, disciplina operacional e ação preventiva.</p>
+    <span class="safeBadge">◎ &nbsp; Operação segura</span>
   </div>
+  <div class="sideUser"><div class="userBox"><div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div><button class="logout" onclick="signOut()">Sair</button></div></div>
  </header>
  <main class="main">
   <div class="top">
-   <div><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><span class="eyebrow">NILO SUPERMERCADO • OPERAÇÃO DE TEMPERATURA</span><h1 id="pageTitle">Coletas</h1><div id="pageSub" class="subtitle">Controle de temperaturas em tempo real.</div></div>
-   <div class="topActions"><div id="identityHost"></div><div id="connectionStatus"></div><div id="scopeHost"></div><div id="actionHost"></div></div>
+   <div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div>
+   <div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div>
   </div>
   <div id="content"></div>
+  <footer class="appFooter">▣ &nbsp; Acesso seguro e criptografado &nbsp; • &nbsp; Nilo Supermercado &nbsp; • &nbsp; Controle de Temperatura</footer>
  </main>
 </div>
 <div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div>
@@ -96,5 +99,6 @@ window.CENTRAL_TEMP_CONFIG = {
 <script src="assets/app-07.js"></script>
 <script src="assets/app-08.js"></script>
 <script src="assets/app-09.js"></script>
+<script src="assets/visual-exato.js"></script>
 </body>
 </html>

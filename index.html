@@ -1,1 +1,87 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071f52"><title>Controle de Temperatura | Nilo V34</title><style>*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#f5f7fb;color:#102653}.boot{min-height:100dvh;display:grid;place-items:center;padding:24px}.box{text-align:center}.logo{font-weight:1000;font-style:italic;font-size:42px;letter-spacing:-.08em;color:#ffe400;text-shadow:0 3px 0 #000}.sub{font-size:11px;color:#718096;margin-top:10px}.spin{width:34px;height:34px;border:4px solid #dfe6eb;border-top-color:#071f52;border-radius:50%;margin:18px auto 0;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}.error{font-size:11px;color:#a43131;margin-top:9px;max-width:760px;word-break:break-word}</style></head><body><div class="boot"><div class="box"><div class="logo">NILO</div><b>CONTROLE DE TEMPERATURA</b><div id="status" class="sub">Abrindo V34...</div><div class="spin"></div><div id="error" class="error"></div></div></div><script>(async()=>{try{const names=["v32-p01.txt","v32-p02.txt","v32-q2.txt","v32-q3.txt","v32-q4.txt"];const parts=await Promise.all(names.map(async n=>{const r=await fetch(n+'?v=34',{cache:'no-store'});if(!r.ok)throw new Error(n+' HTTP '+r.status);return (await r.text()).trim()}));const joined=parts.join('');if(!/^[A-Za-z0-9+/=]+$/.test(joined))throw new Error('Pacote V32 contém caracteres inválidos.');const bytes=Uint8Array.from(atob(joined),c=>c.charCodeAt(0));if(typeof DecompressionStream==='undefined')throw new Error('Navegador sem suporte à descompactação.');const ds=new DecompressionStream('gzip');let html=await new Response(new Blob([bytes]).stream().pipeThrough(ds)).text();if(!html.includes('Controle de Temperatura | Nilo V32')||!html.includes('</html>'))throw new Error('HTML V32 incompleto.');html=html.replace('<title>Controle de Temperatura | Nilo V32</title>','<title>Controle de Temperatura | Nilo V34</title>');const patch=`<scr`+`ipt>(()=>{const bind=()=>{const btn=document.querySelector('#loginPage button.btn.primary');if(!btn)return;btn.removeAttribute('onclick');if(btn.dataset.v34==='1')return;btn.dataset.v34='1';btn.addEventListener('click',()=>{const msg=document.getElementById('loginMsg');if(typeof window.signIn==='function')window.signIn();else if(msg)msg.textContent='Aguarde alguns segundos e tente novamente.';});const pass=document.getElementById('loginPassword');if(pass&&!pass.dataset.v34){pass.dataset.v34='1';pass.removeAttribute('onkeydown');pass.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(typeof window.signIn==='function')window.signIn();}});}};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();let tries=0;const t=setInterval(()=>{bind();if(typeof window.signIn==='function'||++tries>100)clearInterval(t)},100);})();</scr`+`ipt>`;html=html.replace('</body>',patch+'</body>');document.open();document.write(html);document.close()}catch(e){console.error(e);document.getElementById('status').textContent='Não foi possível abrir a V34.';document.querySelector('.spin').style.display='none';document.getElementById('error').textContent=String(e&&e.message?e.message:e)}})();</script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071f52">
+<title>Controle de Temperatura | Nilo</title>
+<link rel="stylesheet" href="assets/base-01.css">
+<link rel="stylesheet" href="assets/base-02.css">
+<link rel="stylesheet" href="assets/base-03.css">
+<link rel="stylesheet" href="assets/base-04.css">
+<link rel="stylesheet" href="assets/base-05.css">
+<link rel="stylesheet" href="assets/nilo.css">
+</head>
+<body>
+
+<div id="loading" class="loading hidden"><div class="loader"></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<section id="loginPage" class="login niloLogin">
+ <div class="hero niloHero" aria-label="Marca Nilo Supermercado">
+   <div class="heroBrandWrap">
+     <img class="niloWordmark" src="assets/nilo-logo.webp" alt="Nilo Supermercado">
+     <div class="heroSlogan">NO QUIETO NO QUIETO<br><strong>O NILO VENDE MAIS BARATO</strong></div>
+     <div class="heroPrevention"><b>Prevenção de perdas</b><span>Monitoramento, disciplina operacional e ação preventiva.</span></div>
+   </div>
+ </div>
+ <div class="loginSide">
+  <div class="loginBox niloLoginBox">
+   <div class="loginBrandRow">
+     <img class="loginMascot" src="assets/nilo-mascote.webp" alt="Mascote Nilo">
+     <div><b>CONTROLE DE TEMPERATURA</b><span>Monitoramento inteligente para lojas sempre seguras.</span></div>
+   </div>
+   <h2>Acesso ao sistema</h2><div class="sub">Entre com o usuário e senha cadastrados.</div>
+   <label>Nome de usuário</label><input id="loginUsername" autocomplete="username" placeholder="Ex.: seu usuário">
+   <label>Senha</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')signIn()">
+   <button class="btn primary loginSubmit" style="width:100%;margin-top:17px" onclick="signIn()">Entrar</button>
+   <div id="loginMsg" class="loginMsg"></div>
+   <div class="secureNote">🔒 Acesso seguro e criptografado</div>
+   <div id="configWarning" class="serverBox hidden"><b>Banco central ainda não conectado.</b><br>É necessário configurar a URL e a chave pública do banco.</div>
+  </div>
+ </div>
+</section>
+
+<div id="app" class="app hidden">
+ <header class="sidebar">
+  <div class="brand"><img class="sidebarLogo" src="assets/nilo-logo.webp" alt="Nilo Supermercado"><div class="brandText">CONTROLE DE<br><span>TEMPERATURA</span></div><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
+  <div class="collectShortcut" id="collectShortcutHost"></div>
+  <div id="navHost"></div>
+  <div class="sidebarSlogan">NO QUIETO NO QUIETO<br><strong>O NILO VENDE MAIS BARATO</strong></div>
+  <div class="sideUser">
+    <div class="userBox">
+      <div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div>
+      <button class="logout" onclick="signOut()">Sair</button>
+    </div>
+  </div>
+ </header>
+ <main class="main">
+  <div class="top">
+   <div><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><span class="eyebrow">NILO SUPERMERCADO • OPERAÇÃO DE TEMPERATURA</span><h1 id="pageTitle">Coletas</h1><div id="pageSub" class="subtitle">Controle de temperaturas em tempo real.</div></div>
+   <div class="topActions"><div id="identityHost"></div><div id="connectionStatus"></div><div id="scopeHost"></div><div id="actionHost"></div></div>
+  </div>
+  <div id="content"></div>
+ </main>
+</div>
+<div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div>
+<div id="modalHost"></div>
+
+<script>
+window.CENTRAL_TEMP_CONFIG = {
+  SUPABASE_URL: "https://vwwkzenvcxedxiuopsgv.supabase.co",
+  SUPABASE_KEY: "sb_publishable_Vh9zdSxCUH0fMJOjf_G6Sw_UMU0t0to",
+  USER_EMAIL_DOMAIN: "centraltemp.invalid"
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<script src="assets/app-01.js"></script>
+<script src="assets/app-02.js"></script>
+<script src="assets/app-03.js"></script>
+<script src="assets/app-04.js"></script>
+<script src="assets/app-05.js"></script>
+<script src="assets/app-06.js"></script>
+<script src="assets/app-07.js"></script>
+<script src="assets/app-08.js"></script>
+<script src="assets/app-09.js"></script>
+</body>
+</html>

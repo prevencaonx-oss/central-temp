@@ -1,0 +1,475 @@
+.sampleProgress b{color:#283849}
+.equipmentCollectionMode{display:inline-flex;align-items:center;padding:4px 7px;margin-top:7px;border-radius:7px;background:#eef3f6;color:#426074;font-size:8px;font-weight:900}
+.readingResult{min-width:130px}
+.readingResult strong{display:block;font-size:12px}
+.readingResult small{display:block;margin-top:2px;color:#7d8996;font-size:8px;line-height:1.4}
+.readingSamples{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.readingSamples span{padding:3px 5px;border-radius:6px;background:#f1f4f6;color:#5e6c79;font-size:8px;font-weight:700}
+.tripleAlertSummary{margin-top:10px;padding:10px;border:1px solid #f0d7bd;border-radius:9px;background:#fff8ed}
+.tripleAlertSummary small{display:block;color:#94744c;font-size:8px;text-transform:uppercase;font-weight:800}
+.tripleAlertSummary b{display:block;margin-top:3px;color:#6f4d20;font-size:11px}
+@media(max-width:900px){.sampleInputs.three{grid-template-columns:1fr}.sampleInputCard input{text-align:left}}
+@media(max-width:650px){.sampleChoiceGrid{grid-template-columns:1fr}.sampleStats{grid-template-columns:repeat(3,1fr)}.sampleStat{padding:8px}.sampleStat b{font-size:13px}}
+@media(max-width:420px){.sampleStats{grid-template-columns:1fr}}
+
+
+/* ===== V11 — META DIÁRIA + MOBILE FIRST ===== */
+.dailyGoalProgress{
+  height:5px;
+  margin:6px 0 4px;
+  border-radius:99px;
+  overflow:hidden;
+  background:#e7edf1;
+}
+.dailyGoalProgress span{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:#d99d12;
+}
+.dailyGoalRow.goalMet{
+  background:#f3faf6;
+  border-color:#d6eade;
+}
+.dailyGoalRow.goalMet .dailyGoalProgress span{background:#2b8560}
+.mobileClose{display:none}
+
+@media(max-width:900px){
+  html,body{max-width:100%;overflow-x:hidden}
+  body{font-size:15px;background:#f1f4f6!important}
+
+  /* LOGIN */
+  .login{
+    display:block!important;
+    min-height:100dvh!important;
+    background:#f3f6f8!important;
+  }
+  .hero{display:none!important}
+  .loginSide{
+    min-height:100dvh!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:18px!important;
+  }
+  .loginBox{
+    width:100%!important;
+    max-width:440px!important;
+    border-radius:18px!important;
+    padding:22px!important;
+    box-shadow:0 12px 32px rgba(15,35,52,.10)!important;
+  }
+  .loginBox h2{font-size:25px!important}
+  .loginBox input{
+    min-height:50px!important;
+    font-size:16px!important;
+  }
+  .loginBox .btn{
+    width:100%!important;
+    min-height:48px!important;
+    font-size:14px!important;
+  }
+
+  /* DRAWER LATERAL */
+  .app{display:block!important;min-width:0!important}
+  .sidebar{
+    position:fixed!important;
+    top:0!important;bottom:0!important;
+    left:-102%!important;
+    width:min(86vw,310px)!important;
+    height:100dvh!important;
+    z-index:70!important;
+    transition:left .22s ease!important;
+    box-shadow:10px 0 32px rgba(9,25,40,.25)!important;
+    overflow-y:auto!important;
+  }
+  .sidebar.mobileOpen{left:0!important}
+  .mobileOverlay{z-index:65!important}
+  .brand{
+    position:sticky!important;
+    top:0!important;
+    z-index:2!important;
+    background:#173653!important;
+    padding:16px!important;
+  }
+  .brandText{display:block!important;font-size:16px!important}
+  .mobileClose{
+    display:grid!important;
+    place-items:center!important;
+    margin-left:auto!important;
+    width:36px!important;height:36px!important;
+    border-radius:9px!important;
+    background:rgba(255,255,255,.08)!important;
+    color:#fff!important;
+    font-size:24px!important;
+  }
+  .collectShortcut{padding:10px 12px 4px!important}
+  .collectShortcut button{
+    min-height:50px!important;
+    font-size:12px!important;
+    border-radius:11px!important;
+  }
+  #navHost{
+    position:static!important;
+    display:block!important;
+    height:auto!important;
+    min-height:0!important;
+    padding:8px 10px 16px!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+  }
+  .sec{font-size:9px!important;padding:16px 10px 7px!important}
+  .nav{
+    width:100%!important;
+    min-height:47px!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    padding:10px 11px!important;
+    font-size:12px!important;
+  }
+  .navIcon{
+    display:grid!important;
+    width:28px!important;height:28px!important;
+    flex:0 0 28px!important;
+    font-size:9px!important;
+  }
+  .navText{font-size:12px!important}
+  .sideUser{display:block!important}
+
+  /* ÁREA PRINCIPAL */
+  .main{
+    width:100%!important;
+    min-width:0!important;
+    padding:0 12px 26px!important;
+    background:#f1f4f6!important;
+  }
+  .top{
+    position:sticky!important;
+    top:0!important;
+    z-index:30!important;
+    margin:0 -12px!important;
+    min-height:64px!important;
+    padding:11px 12px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:9px!important;
+    align-items:stretch!important;
+    background:rgba(255,255,255,.97)!important;
+    backdrop-filter:blur(12px)!important;
+    box-shadow:0 2px 12px rgba(22,42,58,.06)!important;
+  }
+  .top>div:first-child{
+    width:100%!important;
+    min-width:0!important;
+    padding-left:48px!important;
+    position:relative!important;
+  }
+  .mobileMenuBtn{
+    display:block!important;
+    position:absolute!important;
+    left:0!important;top:1px!important;
+    width:39px!important;height:39px!important;
+  }
+  .top h1{
+    font-size:20px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .top .eyebrow{font-size:7px!important}
+  .top .subtitle{display:none!important}
+  .topActions{
+    width:100%!important;
+    display:flex!important;
+    gap:6px!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-start!important;
+  }
+  .topActions>div{max-width:100%}
+  .scope{
+    flex:1 1 210px!important;
+    min-width:0!important;
+  }
+  .scope select{
+    min-width:0!important;
+    width:100%!important;
+    font-size:12px!important;
+  }
+  #connectionStatus .badge{min-height:30px!important}
+  #actionHost{flex:1 1 150px!important}
+  #actionHost .btn{
+    width:100%!important;
+    min-height:36px!important;
+  }
+
+  /* CONTEÚDO */
+  .pageIntro,.collectionHero,.alertHero{
+    margin:10px 0!important;
+    padding:14px!important;
+    border-radius:12px!important;
+  }
+  .pageIntro{
+    display:block!important;
+  }
+  .pageIntro h2,.collectionHero h2,.alertHero h2{
+    font-size:19px!important;
+    line-height:1.15!important;
+  }
+  .pageIntro p,.collectionHero p,.alertHero p{
+    font-size:10px!important;
+    line-height:1.45!important;
+  }
+  .introStat{
+    display:flex!important;
+    align-items:baseline!important;
+    gap:6px!important;
+    margin-top:10px!important;
+    text-align:left!important;
+  }
+  .introStat b{font-size:24px!important}
+
+  .grid,.grid2,.accountGrid{
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+  .grid4,.opsKpis{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  .card,.panel,.store,.equip,.accountCard,.collectAsidePanel{
+    border-radius:12px!important;
+  }
+  .card{padding:12px!important;min-height:auto!important}
+  .num{font-size:22px!important}
+  .panel{padding:12px!important;margin-bottom:10px!important}
+  .panelHead{align-items:flex-start!important}
+  .panelHead h2{font-size:14px!important}
+
+  /* COLETA — FOCO PRINCIPAL */
+  .inlineCollectShell{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:10px!important;
+    margin:10px 0!important;
+  }
+  .inlineCollectForm{order:1!important;border-radius:14px!important}
+  .collectAside{order:2!important;display:grid!important;gap:10px!important}
+  .inlineCollectHead{
+    padding:13px 14px!important;
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    gap:8px!important;
+  }
+  .inlineCollectHead h2{font-size:18px!important}
+  .collectUser{
+    width:100%!important;
+    text-align:left!important;
+    padding:8px 0 0!important;
+    border-left:0!important;
+    border-top:1px solid rgba(255,255,255,.14)!important;
+  }
+  .inlineCollectBody{padding:12px!important}
+  .inlineCollectGrid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .inlineCollectGrid .full{grid-column:auto!important}
+  .inlineCollectGrid>div:first-child>div:first-child{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+    align-items:stretch!important;
+  }
+  #icMode{
+    justify-self:start!important;
+    margin-top:1px!important;
+  }
+  .collectRange{
+    grid-template-columns:1fr 1fr!important;
+    gap:6px!important;
+  }
+  .collectRange div:first-child{grid-column:1/-1}
+  .sampleInputs.three,.sampleInputs.one{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  .sampleInputCard{
+    padding:9px!important;
+  }
+  .sampleInputCard input{
+    min-height:52px!important;
+    font-size:20px!important;
+    text-align:left!important;
+    border-radius:9px!important;
+  }
+  .sampleStats{
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:5px!important;
+  }
+  .sampleStat{
+    padding:8px 6px!important;
+    min-width:0!important;
+  }
+  .sampleStat small{
+    font-size:7px!important;
+    white-space:normal!important;
+  }
+  .sampleStat b{
+    font-size:12px!important;
+    white-space:nowrap!important;
+  }
+  .collectStatus{
+    min-height:44px!important;
+    font-size:10px!important;
+    line-height:1.4!important;
+  }
+  .inlineCollectGrid input,
+  .inlineCollectGrid select,
+  .inlineCollectGrid textarea{
+    min-height:48px!important;
+    font-size:16px!important;
+    border-radius:9px!important;
+  }
+  .inlineCollectGrid textarea{
+    min-height:82px!important;
+  }
+  .inlineCollectActions{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:8!important;
+    display:block!important;
+    margin:12px -12px -12px!important;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.97)!important;
+    border-top:1px solid #e2e7eb!important;
+    box-shadow:0 -5px 18px rgba(20,43,60,.07)!important;
+  }
+  .inlineCollectActions>span{display:none!important}
+  .saveCollectBtn{
+    width:100%!important;
+    min-height:50px!important;
+    font-size:13px!important;
+    border-radius:10px!important;
+  }
+  .quickCollectRow{
+    padding:10px!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+  }
+  .quickCollectRow .btn{min-height:36px!important}
+
+  /* FORMULÁRIOS E MODAIS */
+  input,select,textarea{
+    font-size:16px!important;
+    max-width:100%!important;
+  }
+  .formGrid,.checkGrid{
+    grid-template-columns:1fr!important;
+  }
+  .sampleChoiceGrid{grid-template-columns:1fr!important}
+  .modal{
+    align-items:end!important;
+    padding:0!important;
+  }
+  .modalBox{
+    width:100%!important;
+    max-width:none!important;
+    max-height:92dvh!important;
+    border-radius:18px 18px 0 0!important;
+    padding:16px!important;
+  }
+  .modalActions{
+    position:sticky!important;
+    bottom:-16px!important;
+    margin:14px -16px -16px!important;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom))!important;
+    background:#fff!important;
+    border-top:1px solid #e5e9ed!important;
+  }
+  .modalActions .btn{
+    flex:1 1 auto!important;
+    min-height:44px!important;
+  }
+
+  /* HISTÓRICO / TABELAS COMO CARDS */
+  .tableWrap{
+    overflow:visible!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  table,tbody,tr,td{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  thead{display:none!important}
+  tr{
+    margin-bottom:9px!important;
+    padding:10px!important;
+    border:1px solid #dde4e9!important;
+    border-radius:11px!important;
+    background:#fff!important;
+    box-shadow:0 2px 7px rgba(20,43,60,.035)!important;
+  }
+  td{
+    padding:6px 0!important;
+    border:0!important;
+    background:transparent!important;
+    overflow-wrap:anywhere!important;
+  }
+  td:before{
+    content:attr(data-label)!important;
+    display:block!important;
+    margin-bottom:2px!important;
+    color:#84919e!important;
+    font-size:8px!important;
+    font-weight:900!important;
+    text-transform:uppercase!important;
+    letter-spacing:.06em!important;
+  }
+  td .rowActions{
+    margin-top:3px!important;
+  }
+
+  /* EQUIPAMENTOS */
+  .equip{padding:13px!important}
+  .temp{font-size:27px!important}
+  .rangeLine{gap:8px!important}
+
+  /* TOOLBARS */
+  .toolbar{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+  .toolbar input,.toolbar select{
+    width:100%!important;
+    min-width:0!important;
+    min-height:44px!important;
+  }
+
+  /* TOAST */
+  .toast{
+    left:12px!important;
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom))!important;
+    max-width:none!important;
+    font-size:11px!important;
+  }
+}
+
+@media(max-width:430px){
+  .main{padding-left:9px!important;padding-right:9px!important}
+  .top{margin-left:-9px!important;margin-right:-9px!important;padding-left:9px!important;padding-right:9px!important}
+  .grid4,.opsKpis{grid-template-columns:1fr 1fr!important}
+  .sampleStats{grid-template-columns:1fr 1fr 1fr!important}
+  .scope{flex-basis:100%!important}
+}
+
+
+/* ===== V12 — NOVO LOGIN MOBILE ===== */
+.mobileLoginBrand{display:none}

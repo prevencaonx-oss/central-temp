@@ -93,7 +93,10 @@ begin
         updated_by = excluded.updated_by,
         updated_at = excluded.updated_at;
 
-  delete from private.training_mode_access_attempts;
+  -- Reset every previous attempt after an admin changes the shared password.
+  -- The explicit predicate also keeps pg-safeupdate protections satisfied.
+  delete from private.training_mode_access_attempts
+  where user_id is not null;
 
   insert into public.audit_logs (user_id, action, entity_type, entity_id, details)
   values (v_user_id, 'training_password_updated', 'training_mode', 'global', jsonb_build_object('configured', true));

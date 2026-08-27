@@ -96,10 +96,31 @@ async function subscribeRealtime(){
 }
 async function boot(){
  if(!configured){document.getElementById("configWarning").classList.remove("hidden");return}
- state.session=null;state.profile=null;state.activeStoreId=null;document.body.classList.remove("app-open","vx-network-page");
- document.getElementById("loginPage").classList.remove("hidden");
- document.getElementById("app").classList.add("hidden");
- showLoad(false);
+ state.profile=null;state.activeStoreId=null;document.body.classList.remove("app-open","vx-network-page","mobile-nav-open");
+ document.getElementById("app").classList.add("hidden");showLoad(true);
+ try{
+  const {data:sessionData,error:sessionError}=await withTimeout(sb.auth.getSession(),7000,"Tempo esgotado ao restaurar a sessão.");
+  if(sessionError)throw sessionError;
+  const session=sessionData?.session||null;
+  if(!session){
+   state.session=null;document.getElementById("loginPage").classList.remove("hidden");showLoad(false);return;
+  }
+  const {data:userData,error:userError}=await withTimeout(sb.auth.getUser(),7000,"Tempo esgotado ao validar a sessão.");
+  if(userError||!userData?.user){
+   const code=String(userError?.code||"");
+   if(/session_not_found|refresh_token|bad_jwt/i.test(code))await sb.auth.signOut();
+   throw userError||new Error("Sessão inválida.");
+  }
+  state.session={...session,user:userData.user};await getMyProfile(userData.user.id);
+  if(!state.profile?.active){await sb.auth.signOut();throw new Error("Este usuário está inativo.")}
+  state.activeStoreId=state.profile.role==="admin"?null:state.profile.store_id;
+  await enterApp();
+ }catch(e){
+  console.error("SESSION_RESTORE_ERROR",e);
+  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("loginMsg").textContent=/failed to fetch|network|tempo esgotado/i.test(String(e?.message||""))?"Não foi possível restaurar a sessão. Verifique a internet e tente novamente.":"Sua sessão expirou. Entre novamente.";
+  showLoad(false);
+ }
 }
 async function enterApp(){
  await fetchAll();document.getElementById("loginPage").classList.add("hidden");document.getElementById("app").classList.remove("hidden");document.body.classList.add("app-open");

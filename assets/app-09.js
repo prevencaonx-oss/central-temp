@@ -128,6 +128,12 @@ function showModal(content,closable=true){
 window.closeModal=()=>{const host=document.getElementById("modalHost");if(host)host.innerHTML=""};
 
 if(configured){
- sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){state.session=null}});
+ sb.auth.onAuthStateChange((event,session)=>{
+  if(session)state.session=session;
+  if(event==="SIGNED_OUT"){
+   state.session=null;state.profile=null;document.body.classList.remove("app-open","vx-network-page","mobile-nav-open");
+   document.getElementById("app")?.classList.add("hidden");document.getElementById("loginPage")?.classList.remove("hidden");
+  }
+ });
 }else document.getElementById("configWarning").classList.remove("hidden");
 boot();

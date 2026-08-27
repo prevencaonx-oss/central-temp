@@ -2,7 +2,7 @@ const createClient=window.supabase.createClient;
 
 const CFG=window.CENTRAL_TEMP_CONFIG||{};
 const configured=CFG.SUPABASE_URL && !CFG.SUPABASE_URL.startsWith("COLE_") && CFG.SUPABASE_KEY && !CFG.SUPABASE_KEY.startsWith("COLE_");
-const sb=configured?createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:false}}):null;
+const sb=configured?createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:"central-temp-auth-v1"}}):null;
 
 const PERMS={
  "dashboard.network":"Dashboard geral da rede",

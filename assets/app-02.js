@@ -18,13 +18,17 @@ function setPage(p){
 }
 window.go=setPage;
 window.openMobileNav=()=>{
- document.querySelector(".sidebar")?.classList.add("mobileOpen");
- document.getElementById("mobileOverlay")?.classList.add("show");
+ const sidebar=document.querySelector(".sidebar"),overlay=document.getElementById("mobileOverlay");
+ sidebar?.classList.add("mobileOpen");overlay?.classList.add("show");document.body.classList.add("mobile-nav-open");
+ document.querySelectorAll('[aria-controls="mobileSidebar"]').forEach(button=>button.setAttribute("aria-expanded","true"));
 };
 window.closeMobileNav=()=>{
- document.querySelector(".sidebar")?.classList.remove("mobileOpen");
- document.getElementById("mobileOverlay")?.classList.remove("show");
+ const sidebar=document.querySelector(".sidebar"),overlay=document.getElementById("mobileOverlay");
+ sidebar?.classList.remove("mobileOpen");overlay?.classList.remove("show");document.body.classList.remove("mobile-nav-open");
+ document.querySelectorAll('[aria-controls="mobileSidebar"]').forEach(button=>button.setAttribute("aria-expanded","false"));
 };
+window.addEventListener("keydown",event=>{if(event.key==="Escape")closeMobileNav()});
+window.addEventListener("resize",()=>{if(window.innerWidth>820)closeMobileNav()});
 
 function renderActions(){
  const h=document.getElementById("actionHost");h.innerHTML="";

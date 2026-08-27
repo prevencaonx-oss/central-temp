@@ -57,7 +57,7 @@
 </section>
 
 <div id="app" class="app hidden">
- <header class="sidebar">
+ <header class="sidebar" id="mobileSidebar">
   <div class="brand"><div class="logoLockup"><img class="niloMark" src="assets/nilo-logo-transparent.png" alt="Nilo Supermercado"></div><button class="mobileClose" onclick="closeMobileNav()" aria-label="Fechar menu">×</button></div>
   <div class="collectShortcut" id="collectShortcutHost"></div>
   <div id="navHost"></div>
@@ -66,17 +66,17 @@
   <div class="sideUser"><div class="userBox"><span class="sideMascot"><img src="assets/nilo-mascote.webp" alt=""></span><div class="userInfo"><b id="sideName">—</b><small id="sideRole">—</small></div><button class="logout" onclick="signOut()" aria-label="Sair">↪</button></div></div>
  </header>
  <main class="main">
-  <div class="mobileBrandBar"><button class="mobileBrandMenu" onclick="openMobileNav()" aria-label="Abrir menu">☰</button><img src="assets/nilo-logo-transparent.png" alt="Nilo Supermercado"><button class="mobileBrandAlert" onclick="go('pending')" aria-label="Abrir alertas">♧<span>!</span></button></div>
-  <div class="top"><div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div><div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div></div>
+  <div class="mobileBrandBar"><button class="mobileBrandMenu" onclick="openMobileNav()" aria-label="Abrir menu" aria-controls="mobileSidebar" aria-expanded="false">☰</button><img src="assets/nilo-logo-transparent.png" alt="Nilo Supermercado"><button class="mobileBrandAlert" onclick="go('pending')" aria-label="Abrir alertas">♧<span>!</span></button></div>
+  <div class="top"><div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu" aria-controls="mobileSidebar" aria-expanded="false"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div><div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div></div>
   <div id="content"></div>
   <footer class="appFooter">▣ &nbsp; Acesso seguro e criptografado &nbsp; • &nbsp; Nilo Supermercado &nbsp; • &nbsp; Controle de Temperatura</footer>
  </main>
 </div>
-<nav class="mobileBottomNav" aria-label="Navegação rápida"><button data-mobile-page="network" onclick="go('network')"><span>⌂</span>Início</button><button data-mobile-page="stores" onclick="go('stores')"><span>▤</span>Lojas</button><button data-mobile-page="readings" onclick="go('readings')"><span>▣</span>Coletas</button><button data-mobile-page="pending" onclick="go('pending')"><span>♧</span>Alertas</button><button onclick="openMobileNav()"><span>☰</span>Mais</button></nav>
+<nav class="mobileBottomNav" aria-label="Navegação rápida"><button data-mobile-page="network" onclick="go('network')"><span>⌂</span>Início</button><button data-mobile-page="stores" onclick="go('stores')"><span>▤</span>Lojas</button><button data-mobile-page="readings" onclick="go('readings')"><span>▣</span>Coletas</button><button data-mobile-page="pending" onclick="go('pending')"><span>♧</span>Alertas</button><button onclick="openMobileNav()" aria-controls="mobileSidebar" aria-expanded="false"><span>☰</span>Mais</button></nav>
 <div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div><div id="modalHost"></div>
 <script>window.CENTRAL_TEMP_CONFIG={SUPABASE_URL:"https://vwwkzenvcxedxiuopsgv.supabase.co",SUPABASE_KEY:"sb_publishable_Vh9zdSxCUH0fMJOjf_G6Sw_UMU0t0to",USER_EMAIL_DOMAIN:"centraltemp.invalid"};</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-<script src="assets/app-01.js"></script><script src="assets/app-02.js?v=20260827-loginfix"></script><script src="assets/app-03.js"></script><script src="assets/app-04.js"></script><script src="assets/app-05.js"></script><script src="assets/app-06.js"></script><script src="assets/app-07.js"></script><script src="assets/app-08.js"></script><script src="assets/app-09.js"></script><script src="assets/visual-exato.js"></script>
+<script src="assets/app-01.js"></script><script src="assets/app-02.js?v=20260827-mobilefix"></script><script src="assets/app-03.js"></script><script src="assets/app-04.js"></script><script src="assets/app-05.js"></script><script src="assets/app-06.js"></script><script src="assets/app-07.js"></script><script src="assets/app-08.js"></script><script src="assets/app-09.js"></script><script src="assets/visual-exato.js"></script>
 <script>
 window.addEventListener("error",()=>document.getElementById("loading")?.classList.add("hidden"));
 window.addEventListener("unhandledrejection",()=>document.getElementById("loading")?.classList.add("hidden"));

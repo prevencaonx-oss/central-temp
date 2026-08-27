@@ -69,8 +69,9 @@ async function fetchAll(){
   state.audit=res[7].data||[];
  }finally{showLoad(false)}
 }
-async function getMyProfile(){
- const {data,error}=await withTimeout(sb.from("profiles").select("*").eq("id",state.session.user.id).single(),10000,"Tempo esgotado ao carregar o perfil.");if(error)throw error;state.profile=data;
+async function getMyProfile(userId=state.session?.user?.id){
+ if(!userId)throw new Error("Não foi possível identificar o usuário autenticado.");
+ const {data,error}=await withTimeout(sb.from("profiles").select("*").eq("id",userId).single(),10000,"Tempo esgotado ao carregar o perfil.");if(error)throw error;state.profile=data;
 }
 async function subscribeRealtime(){
  if(state.channel)await sb.removeChannel(state.channel);
@@ -121,7 +122,14 @@ window.signIn=async()=>{
  showLoad(true);document.getElementById("loginMsg").textContent="";
  try{
   const {data,error}=await withTimeout(sb.auth.signInWithPassword({email:emailFor(username),password}),10000,"Tempo esgotado ao autenticar. Tente novamente.");if(error)throw error;
-  state.session=data.session;await getMyProfile();
+  let session=data?.session||null,user=data?.user||session?.user||null;
+  if(!user?.id){
+   const {data:sessionData,error:sessionError}=await withTimeout(sb.auth.getSession(),5000,"Não foi possível recuperar a sessão.");
+   if(sessionError)throw sessionError;
+   session=sessionData?.session||session;user=session?.user||user;
+  }
+  if(!user?.id)throw new Error("Não foi possível identificar o usuário autenticado.");
+  state.session=session||{user};await getMyProfile(user.id);
   if(!state.profile.active)throw new Error("Este usuário está inativo.");
   if(state.profile.role==="admin"){
     try{
@@ -136,8 +144,8 @@ window.signIn=async()=>{
   }
  }catch(e){
   console.error("LOGIN_ERROR",e);
-  const raw=String(e?.message||"");
-  const friendly=/invalid login credentials/i.test(raw)?"Usuário ou senha inválidos.":/failed to fetch|network/i.test(raw)?"Não foi possível conectar ao servidor. Verifique a internet e tente novamente.":"Não foi possível concluir o acesso. Tente novamente.";
+  const raw=String(e?.message||""),code=String(e?.code||"");
+  const friendly=code==="invalid_credentials"||/invalid login credentials/i.test(raw)?"Usuário ou senha inválidos.":code==="email_not_confirmed"?"Confirme o e-mail da conta antes de entrar.":/failed to fetch|network/i.test(raw)?"Não foi possível conectar ao servidor. Verifique a internet e tente novamente.":/identificar o usuário autenticado|recuperar a sessão/i.test(raw)?"A autenticação foi aceita, mas a sessão não pôde ser concluída. Atualize a página e tente novamente.":"Não foi possível concluir o acesso. Tente novamente.";
   document.getElementById("loginMsg").textContent=friendly;showLoad(false)
  }
 };

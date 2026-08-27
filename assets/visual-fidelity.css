@@ -80,3 +80,18 @@ html,body{background:var(--vx-bg)!important;color:var(--vx-text);font-family:Int
 
 .vxLossBanner{grid-template-columns:1fr!important}
 #loginPage.hidden,#app.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Padrao unico para os controles marcados no cabecalho desktop. */
+:root{--vx-header-control-height:36px;--vx-header-control-width:116px;--vx-header-control-gap:8px;--vx-header-control-radius:7px}
+.topActions{gap:var(--vx-header-control-gap)!important}
+#actionHost{display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:flex-end!important;gap:var(--vx-header-control-gap)!important;max-width:none!important}
+#actionHost:empty{display:none!important}
+#actionHost>button{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;height:var(--vx-header-control-height)!important;min-height:var(--vx-header-control-height)!important;margin:0!important;padding:0 14px!important;border-radius:var(--vx-header-control-radius)!important;font-size:9px!important;font-weight:800!important;line-height:1!important;white-space:nowrap!important}
+#actionHost>.btn{width:var(--vx-header-control-width)!important;min-width:var(--vx-header-control-width)!important;max-width:var(--vx-header-control-width)!important}
+#actionHost>.vxHeaderDate{width:var(--vx-header-control-width)!important;min-width:var(--vx-header-control-width)!important;max-width:var(--vx-header-control-width)!important;gap:8px!important;padding:0 12px!important}
+#actionHost>.vxHeaderFilter{width:var(--vx-header-control-height)!important;min-width:var(--vx-header-control-height)!important;max-width:var(--vx-header-control-height)!important;padding:0!important}
+
+@media(min-width:821px) and (max-width:1080px){
+ :root{--vx-header-control-width:108px}
+ #actionHost>button{padding-right:10px!important;padding-left:10px!important;font-size:8px!important}
+}

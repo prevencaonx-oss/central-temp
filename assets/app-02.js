@@ -12,7 +12,7 @@ function renderScope(){
  host.innerHTML=`<div class="scope"><b>Escopo:</b><select style="border:0;padding:2px;width:auto;min-width:150px" onchange="changeScope(this.value)">${opts.join("")}</select></div>`;
 }
 window.changeScope=v=>{state.activeStoreId=v||null;analysisFilter.sectorId="";analysisFilter.equipmentId="";if(state.page)renderPage()};
-function setConnection(ok=true){document.getElementById("connectionStatus").innerHTML=ok?`<span class="badge good"><span class="dot"></span>Tempo real conectado</span>`:`<span class="offline">Reconectando...</span>`}
+function setConnection(ok=true){document.getElementById("connectionStatus").innerHTML=state.trainingMode?`<span class="badge trainingConnection"><span class="dot"></span>Ambiente simulado</span>`:ok?`<span class="badge good"><span class="dot"></span>Tempo real conectado</span>`:`<span class="offline">Reconectando...</span>`}
 function setPage(p){
  state.page=p;document.body.classList.toggle("vx-network-page",p==="network");buildNav();const [t,s]=pageMeta(p);document.getElementById("pageTitle").textContent=t;document.getElementById("pageSub").textContent=s;renderActions();renderPage();
 }
@@ -41,7 +41,8 @@ function renderActions(){
 }
 function renderPage(){
  renderScope();renderIdentity();
- ({network:renderNetwork,store:renderStoreDash,stores:renderStores,equipment:renderEquipment,readings:renderReadings,pending:renderPending,reports:renderReports,users:renderUsers,audit:renderAudit,account:renderAccount}[state.page]||renderReadings)();
+ ({network:renderNetwork,store:renderStoreDash,stores:renderStores,equipment:renderEquipment,readings:renderReadings,pending:renderPending,reports:renderReports,users:renderUsers,audit:renderAudit,training:renderTraining,account:renderAccount}[state.page]||renderReadings)();
+ renderTrainingChrome?.();
 }
 function withTimeout(promise,ms=10000,message="Tempo esgotado ao conectar. Tente novamente."){
  let timer;
@@ -49,6 +50,7 @@ function withTimeout(promise,ms=10000,message="Tempo esgotado ao conectar. Tente
  return Promise.race([Promise.resolve(promise),timeout]).finally(()=>clearTimeout(timer));
 }
 async function fetchAll(){
+ if(state.trainingMode){showLoad(false);return}
  showLoad(true);
  try{
   const queries=Promise.all([
@@ -78,6 +80,7 @@ async function getMyProfile(userId=state.session?.user?.id){
  const {data,error}=await withTimeout(sb.from("profiles").select("*").eq("id",userId).single(),10000,"Tempo esgotado ao carregar o perfil.");if(error)throw error;state.profile=data;
 }
 async function subscribeRealtime(){
+ if(state.trainingMode){setConnection(true);return}
  if(state.channel)await sb.removeChannel(state.channel);
  state.channel=sb.channel("central-temp-live")
   .on("postgres_changes",{event:"*",schema:"public",table:"readings"},async()=>{await fetchAll();renderPage();})
@@ -103,7 +106,7 @@ async function boot(){
   if(sessionError)throw sessionError;
   const session=sessionData?.session||null;
   if(!session){
-   state.session=null;document.getElementById("loginPage").classList.remove("hidden");showLoad(false);return;
+   clearTrainingModeState?.();state.session=null;document.getElementById("loginPage").classList.remove("hidden");showLoad(false);return;
   }
   const {data:userData,error:userError}=await withTimeout(sb.auth.getUser(),7000,"Tempo esgotado ao validar a sessão.");
   if(userError||!userData?.user){
@@ -117,13 +120,14 @@ async function boot(){
   await enterApp();
  }catch(e){
   console.error("SESSION_RESTORE_ERROR",e);
+  clearTrainingModeState?.();state.trainingMode=false;state.trainingSnapshot=null;
   document.getElementById("loginPage").classList.remove("hidden");
   document.getElementById("loginMsg").textContent=/failed to fetch|network|tempo esgotado/i.test(String(e?.message||""))?"Não foi possível restaurar a sessão. Verifique a internet e tente novamente.":"Sua sessão expirou. Entre novamente.";
   showLoad(false);
  }
 }
 async function enterApp(){
- await fetchAll();document.getElementById("loginPage").classList.add("hidden");document.getElementById("app").classList.remove("hidden");document.body.classList.add("app-open");
+ await fetchAll();await restoreTrainingModeIfNeeded();document.getElementById("loginPage").classList.add("hidden");document.getElementById("app").classList.remove("hidden");document.body.classList.add("app-open");
  document.getElementById("sideName").textContent=state.profile.full_name;document.getElementById("sideRole").textContent=roleLabel(state.profile.role);
  buildNav();renderScope();renderIdentity();await subscribeRealtime();
  const first=state.profile.role==="agent"?"readings":(navItems()[0]?.[0]||"readings");try{setPage(first)}finally{showLoad(false)};
@@ -139,7 +143,7 @@ window.confirmAdminEntry=async()=>{
  state.activeStoreId=document.getElementById("adminEntryStore").value||null;closeModal();
  try{await enterApp()}catch(e){console.error("ENTER_APP_ERROR",e);showLoad(false);toast(e?.message||"Não foi possível carregar o sistema.","bad")}
 };
-window.cancelAdminLogin=async()=>{closeModal();await sb.auth.signOut();state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null}};
+window.cancelAdminLogin=async()=>{closeModal();clearTrainingModeState?.();await sb.auth.signOut();state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null,trainingMode:false,trainingSnapshot:null,trainingStatus:null,trainingStatusError:""}};
 window.signIn=async()=>{
  if(!configured){document.getElementById("configWarning").classList.remove("hidden");return}
  const username=document.getElementById("loginUsername").value.trim().toLowerCase(),password=document.getElementById("loginPassword").value;
@@ -176,8 +180,9 @@ window.signIn=async()=>{
 };
 window.signOut=async()=>{
  if(state.channel)await sb.removeChannel(state.channel);
+ clearTrainingModeState?.();
  try{await sb.auth.signOut()}catch{}
- state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null};
+ state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null,trainingMode:false,trainingSnapshot:null,trainingStatus:null,trainingStatusError:""};
  window.state=state;
  document.getElementById("app").classList.add("hidden");document.body.classList.remove("app-open","vx-network-page");
  document.getElementById("loginPage").classList.remove("hidden");

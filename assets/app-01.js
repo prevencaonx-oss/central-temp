@@ -29,7 +29,7 @@ const BUILTIN={
  custom:[]
 };
 
-let state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null};
+let state={session:null,profile:null,stores:[],sectors:[],equipment:[],readings:[],profiles:[],alerts:[],incidents:[],audit:[],activeStoreId:null,page:null,channel:null,trainingMode:false,trainingSnapshot:null,trainingStatus:null,trainingStatusError:""};
 let lastOwnReadingId=null;
 window.state=state;
 
@@ -197,6 +197,7 @@ function pageMeta(p){
   reports:["Relatórios","Indicadores e análises da operação."],
   users:["Usuários","Gestão de acessos e permissões."],
   audit:["Auditoria","Rastreabilidade das ações no sistema."],
+  training:["Modo de Treinamento","Pratique com dados simulados sem alterar a operação real."],
   account:["Minha Conta","Dados e permissões do seu acesso."]
  }[p]||["Central Temp",""];
 }
@@ -213,6 +214,7 @@ function navItems(){
  if(can("reports.view"))out.push(["reports","RP","Relatórios","","Gestão"]);
  if(can("users.view")||can("users.manage_agents")||can("users.manage_all"))out.push(["users","US","Usuários","","Gestão"]);
  if(can("audit.view"))out.push(["audit","AU","Auditoria","","Gestão"]);
+ out.push(["training","TR","Treinamento","","Conta"]);
  out.push(["account","MC","Minha Conta","","Conta"]);
  return out;
 }

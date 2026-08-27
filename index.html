@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="assets/base-04.css">
 <link rel="stylesheet" href="assets/base-05.css">
 <link rel="stylesheet" href="assets/nilo.css">
-<link rel="stylesheet" href="assets/visual-fidelity.css?v=20260827-headerstandard">
+<link rel="stylesheet" href="assets/visual-fidelity.css?v=20260827-training">
 </head>
 <body>
 <div id="loading" class="loading hidden"><div class="loader"></div></div>
@@ -67,6 +67,7 @@
  </header>
  <main class="main">
   <div class="mobileBrandBar"><button class="mobileBrandMenu" onclick="openMobileNav()" aria-label="Abrir menu" aria-controls="mobileSidebar" aria-expanded="false">☰</button><img src="assets/nilo-logo-transparent.png" alt="Nilo Supermercado"><button class="mobileBrandAlert" onclick="go('pending')" aria-label="Abrir alertas">♧<span>!</span></button></div>
+  <div id="trainingBanner" class="trainingBanner hidden" role="status"><div><b>MODO DE TREINAMENTO</b><span>Dados simulados — nenhuma alteração será gravada na operação real.</span></div><button type="button" onclick="exitTrainingMode()">Sair do treinamento</button></div>
   <div class="top"><div class="topTitleWrap"><button class="mobileMenuBtn" onclick="openMobileNav()" aria-label="Abrir menu" aria-controls="mobileSidebar" aria-expanded="false"><span></span></button><h1 id="pageTitle">CONTROLE DE TEMPERATURA</h1><div id="pageSub" class="subtitle">Monitoramento inteligente para lojas sempre seguras.</div></div><div class="topActions"><div id="connectionStatus"></div><div id="scopeHost"></div><div id="identityHost"></div><div id="actionHost"></div></div></div>
   <div id="content"></div>
   <footer class="appFooter">▣ &nbsp; Acesso seguro e criptografado &nbsp; • &nbsp; Nilo Supermercado &nbsp; • &nbsp; Controle de Temperatura</footer>
@@ -76,7 +77,7 @@
 <div id="mobileOverlay" class="mobileOverlay" onclick="closeMobileNav()"></div><div id="modalHost"></div>
 <script>window.CENTRAL_TEMP_CONFIG={SUPABASE_URL:"https://vwwkzenvcxedxiuopsgv.supabase.co",SUPABASE_KEY:"sb_publishable_Vh9zdSxCUH0fMJOjf_G6Sw_UMU0t0to",USER_EMAIL_DOMAIN:"centraltemp.invalid"};</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-<script src="assets/app-01.js?v=20260827-sessionfix"></script><script src="assets/app-02.js?v=20260827-sessionfix"></script><script src="assets/app-03.js"></script><script src="assets/app-04.js"></script><script src="assets/app-05.js"></script><script src="assets/app-06.js"></script><script src="assets/app-07.js"></script><script src="assets/app-08.js"></script><script src="assets/app-09.js?v=20260827-sessionfix"></script><script src="assets/visual-exato.js"></script>
+<script src="assets/app-01.js?v=20260827-training"></script><script src="assets/app-02.js?v=20260827-training"></script><script src="assets/app-03.js?v=20260827-training"></script><script src="assets/app-04.js?v=20260827-training"></script><script src="assets/app-05.js?v=20260827-training"></script><script src="assets/app-06.js"></script><script src="assets/app-07.js?v=20260827-training"></script><script src="assets/app-08.js?v=20260827-training"></script><script src="assets/app-10-training.js?v=20260827-training"></script><script src="assets/app-09.js?v=20260827-training"></script><script src="assets/visual-exato.js"></script>
 <script>
 window.addEventListener("error",()=>document.getElementById("loading")?.classList.add("hidden"));
 window.addEventListener("unhandledrejection",()=>document.getElementById("loading")?.classList.add("hidden"));

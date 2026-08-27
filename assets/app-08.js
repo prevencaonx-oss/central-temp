@@ -75,6 +75,7 @@ window.toggleCustomUser=()=>{
  const box=document.getElementById("fuStoreBox");if(box)box.style.display=scope==="global"?"none":"block";
 };
 async function callManageUser(body){
+ if(state.trainingMode)return trainingManageUser(body);
  const {data,error}=await sb.functions.invoke("manage-user",{body});if(error)throw error;if(data?.error)throw new Error(data.error);return data;
 }
 window.saveUser=async id=>{

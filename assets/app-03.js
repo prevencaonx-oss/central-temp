@@ -127,6 +127,6 @@ window.openStore=id=>{
 window.saveStore=async id=>{
  const payload={name:val("fsName").trim(),code:val("fsCode").trim(),city:val("fsCity").trim(),active:val("fsActive")==="true"};
  if(!payload.name||!payload.code)return toast("Informe nome e código.","warn");
- showLoad(true);const {error}=id?await sb.from("stores").update(payload).eq("id",id):await sb.from("stores").insert(payload);showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("stores",id?"update":"insert",payload,id):id?await sb.from("stores").update(payload).eq("id",id):await sb.from("stores").insert(payload);showLoad(false);
  if(error)return toast(error.message,"bad");closeModal();toast("Loja salva.","good");await fetchAll();renderPage();
 };

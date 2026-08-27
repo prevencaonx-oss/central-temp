@@ -1,6 +1,6 @@
 window.toggleStoreActive=async(id,active)=>{
  if(state.profile?.role!=="admin"&&!can("stores.manage"))return toast("Sem permissão.","warn");
- showLoad(true);const {error}=await sb.from("stores").update({active,updated_at:new Date().toISOString()}).eq("id",id);showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("stores","update",{active,updated_at:new Date().toISOString()},id):await sb.from("stores").update({active,updated_at:new Date().toISOString()}).eq("id",id);showLoad(false);
  if(error)return toast(error.message,"bad");
  await fetchAll();renderPage();toast(active?"Loja ativada.":"Loja desativada.","good");
 };
@@ -23,7 +23,7 @@ window.confirmDeleteStore=id=>{
 };
 window.deleteStore=async id=>{
  if(state.profile?.role!=="admin")return toast("Somente Admin pode excluir lojas.","warn");
- showLoad(true);const {error}=await sb.from("stores").delete().eq("id",id);showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("stores","delete",{},id):await sb.from("stores").delete().eq("id",id);showLoad(false);
  if(error)return toast("Não foi possível excluir: "+error.message,"bad");
  closeModal();await fetchAll();renderPage();toast("Loja excluída definitivamente.","good");
 };

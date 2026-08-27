@@ -7,7 +7,7 @@ window.saveInlineReading=async()=>{
  if(bad&&!action)return toast("Temperatura fora do padrão. Informe a ação corretiva.","bad");
  if(condition!=="operational"&&!issue)return toast("Descreva o problema do equipamento.","warn");
  const payload={equipment_id:e.id,store_id:e.store_id,temperature:avg,sample_count:count,temperature_1:nums[0],temperature_2:count===3?nums[1]:null,temperature_3:count===3?nums[2]:null,temperature_avg:avg,temperature_min:min,temperature_max:max,reading_date:date,reading_time:time,responsible_name:state.profile.full_name,notes:val("icNote").trim(),corrective_action:action,equipment_condition:condition,equipment_issue_note:condition==="operational"?null:issue,created_by:state.profile.id};
- showLoad(true);const {data:saved,error}=await sb.from("readings").insert(payload).select("*").single();showLoad(false);
+ showLoad(true);const {data:saved,error}=state.trainingMode?trainingInsertReading(payload):await sb.from("readings").insert(payload).select("*").single();showLoad(false);
  if(error)return toast("Não foi possível salvar a coleta: "+error.message,"bad");
  lastOwnReadingId=saved.id;await fetchAll();const daily=dailyGoalInfo(e);renderReadings();buildNav();renderScope();
  const opMsg=condition!=="operational"?` Ocorrência de ${operationalLabel(condition).toLowerCase()} aberta.`:"";
@@ -19,7 +19,7 @@ window.confirmDeleteReading=id=>{
  const r=reading(id),e=r?equipment(r.equipment_id):null,count=Number(r?.sample_count||1),tempInfo=count===3?`Média ${num(r.temperature_avg??r.temperature,2)} °C • mín. ${num(r.temperature_min)} °C • máx. ${num(r.temperature_max)} °C`:r?num(r.temperature)+" °C":"—";
  showModal(`<div class="modalHead"><div><span class="eyebrow">AÇÃO ADMINISTRATIVA</span><h2>Excluir coleta?</h2></div><button class="x" onclick="closeModal()">×</button></div><div class="notice" style="border-color:#f1caca;background:#fff6f6;color:#7e2b2b"><b>Esta exclusão é definitiva.</b><br>Alertas vinculados poderão ser removidos conforme as regras do banco.</div><div class="detailGrid" style="margin-top:12px"><div><small>Equipamento</small><b>${esc(e?.name||"—")}</b></div><div><small>Resultado</small><b>${tempInfo}</b></div><div><small>Data</small><b>${r?fmtDate(r.reading_date):"—"}</b></div><div><small>Condição</small><b>${operationalLabel(r?.equipment_condition)}</b></div></div><div class="modalActions"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn danger" onclick="deleteReading('${id}')">Excluir definitivamente</button></div>`);
 };
-window.deleteReading=async id=>{if(state.profile.role!=="admin")return toast("Somente Admin pode excluir coletas.","warn");showLoad(true);const {error}=await sb.from("readings").delete().eq("id",id);showLoad(false);if(error)return toast("Não foi possível excluir: "+error.message,"bad");closeModal();await fetchAll();renderPage();toast("Coleta excluída pelo Admin.","good")};
+window.deleteReading=async id=>{if(state.profile.role!=="admin")return toast("Somente Admin pode excluir coletas.","warn");showLoad(true);const {error}=state.trainingMode?trainingWrite("readings","delete",{},id):await sb.from("readings").delete().eq("id",id);showLoad(false);if(error)return toast("Não foi possível excluir: "+error.message,"bad");closeModal();await fetchAll();renderPage();toast("Coleta excluída pelo Admin.","good")};
 window.filterReadTable=()=>{
  const q=(val("searchRead")||"").toLowerCase(),start=val("readStart"),end=val("readEnd"),sec=val("readSector"),st=val("statusRead"),cond=val("conditionRead");
  document.querySelectorAll("[data-read-row]").forEach(tr=>{
@@ -51,12 +51,12 @@ function renderPending(){
  </div>`;
 }
 window.ackAlert=async id=>{
- const {error}=await sb.from("temperature_alerts").update({status:"acknowledged",acknowledged_by:state.profile.id,acknowledged_at:new Date().toISOString()}).eq("id",id);
+ const payload={status:"acknowledged",acknowledged_by:state.profile.id,acknowledged_at:new Date().toISOString()};const {error}=state.trainingMode?trainingWrite("temperature_alerts","update",payload,id):await sb.from("temperature_alerts").update(payload).eq("id",id);
  if(error)return toast(error.message,"bad");
  await fetchAll();renderPage();toast("Alerta marcado como em tratamento.","good")
 };
 window.closeAlert=async id=>{
- const {error}=await sb.from("temperature_alerts").update({status:"closed",closed_by:state.profile.id,closed_at:new Date().toISOString()}).eq("id",id);
+ const payload={status:"closed",closed_by:state.profile.id,closed_at:new Date().toISOString()};const {error}=state.trainingMode?trainingWrite("temperature_alerts","update",payload,id):await sb.from("temperature_alerts").update(payload).eq("id",id);
  if(error)return toast(error.message,"bad");
  await fetchAll();renderPage();toast("Alerta encerrado.","good")
 };
@@ -87,4 +87,3 @@ function notifyBrowserAlert(a){
    new Notification("Central Temp — temperatura fora do padrão",{body:`${store(a.store_id)?.name||""} • ${e?.name||""}: ${r?num(r.temperature)+" °C":""}`})
  }
 }
-

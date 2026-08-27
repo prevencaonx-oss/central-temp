@@ -86,6 +86,7 @@ function renderAccount(){
 }
 
 window.saveMyAccount=async()=>{
+ if(state.trainingMode)return toast("Saia do modo de treinamento para alterar credenciais reais.","warn");
  const currentPassword=val("myCurrentPassword");
  const password=val("myPassword");
  const confirmPassword=val("myPasswordConfirm");
@@ -131,7 +132,7 @@ if(configured){
  sb.auth.onAuthStateChange((event,session)=>{
   if(session)state.session=session;
   if(event==="SIGNED_OUT"){
-   state.session=null;state.profile=null;document.body.classList.remove("app-open","vx-network-page","mobile-nav-open");
+   clearTrainingModeState?.();state.session=null;state.profile=null;state.trainingMode=false;state.trainingSnapshot=null;document.body.classList.remove("app-open","vx-network-page","mobile-nav-open");
    document.getElementById("app")?.classList.add("hidden");document.getElementById("loginPage")?.classList.remove("hidden");
   }
  });

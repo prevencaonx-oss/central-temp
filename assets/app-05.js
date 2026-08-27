@@ -7,12 +7,12 @@ window.saveEquipment=async id=>{
  if(!Number.isFinite(p.target_temp)||!Number.isFinite(p.min_temp)||!Number.isFinite(p.max_temp))return toast("Informe temperaturas válidas.","warn");
  if(p.min_temp>p.max_temp)return toast("A mínima não pode ser maior que a máxima.","warn");
  if(p.target_temp<p.min_temp||p.target_temp>p.max_temp)return toast("A temperatura ideal deve ficar dentro da faixa permitida.","warn");
- showLoad(true);const {error}=id?await sb.from("equipment").update(p).eq("id",id):await sb.from("equipment").insert({...p,created_by:state.profile.id});showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("equipment",id?"update":"insert",id?p:{...p,created_by:state.profile.id},id):id?await sb.from("equipment").update(p).eq("id",id):await sb.from("equipment").insert({...p,created_by:state.profile.id});showLoad(false);
  if(error)return toast(error.message,"bad");
  closeModal();toast(`Equipamento salvo no setor ${sector(p.sector_id)?.name||""}.`,"good");await fetchAll();renderPage();
 };
 window.toggleEquipmentActive=async(id,active)=>{
- showLoad(true);const {error}=await sb.from("equipment").update({active,updated_at:new Date().toISOString()}).eq("id",id);showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("equipment","update",{active,updated_at:new Date().toISOString()},id):await sb.from("equipment").update({active,updated_at:new Date().toISOString()}).eq("id",id);showLoad(false);
  if(error)return toast(error.message,"bad");
  await fetchAll();renderPage();toast(active?"Equipamento ativado.":"Equipamento desativado.","good");
 };
@@ -34,7 +34,7 @@ window.confirmDeleteEquipment=id=>{
 };
 window.deleteEquipment=async id=>{
  if(state.profile?.role!=="admin")return toast("Somente Admin pode excluir equipamentos.","warn");
- showLoad(true);const {error}=await sb.from("equipment").delete().eq("id",id);showLoad(false);
+ showLoad(true);const {error}=state.trainingMode?trainingWrite("equipment","delete",{},id):await sb.from("equipment").delete().eq("id",id);showLoad(false);
  if(error)return toast("Não foi possível excluir: "+error.message,"bad");
  closeModal();await fetchAll();renderPage();toast("Equipamento excluído definitivamente.","good");
 };
@@ -50,22 +50,23 @@ window.openSectors=()=>{
 };
 window.createSector=async()=>{
  const name=val("newSectorName").trim(),store_id=val("newSectorStore");if(!name||!store_id)return toast("Informe loja e nome do setor.","warn");
- const {error}=await sb.from("sectors").insert({name,store_id,created_by:state.profile.id});if(error)return toast(error.message,"bad");
+ const payload={name,store_id,created_by:state.profile.id};const {error}=state.trainingMode?trainingWrite("sectors","insert",payload):await sb.from("sectors").insert(payload);if(error)return toast(error.message,"bad");
  await fetchAll();openSectors();toast("Setor criado.","good");
 };
 window.renameSector=async id=>{
  const s=sector(id),name=prompt("Novo nome do setor:",s?.name||"");if(!name?.trim())return;
- const {error}=await sb.from("sectors").update({name:name.trim(),updated_at:new Date().toISOString()}).eq("id",id);if(error)return toast(error.message,"bad");
+ const payload={name:name.trim(),updated_at:new Date().toISOString()};const {error}=state.trainingMode?trainingWrite("sectors","update",payload,id):await sb.from("sectors").update(payload).eq("id",id);if(error)return toast(error.message,"bad");
  await fetchAll();openSectors();toast("Setor atualizado.","good");
 };
 window.toggleSector=async(id,active)=>{
- const {error}=await sb.from("sectors").update({active,updated_at:new Date().toISOString()}).eq("id",id);if(error)return toast(error.message,"bad");
+ const payload={active,updated_at:new Date().toISOString()};const {error}=state.trainingMode?trainingWrite("sectors","update",payload,id):await sb.from("sectors").update(payload).eq("id",id);if(error)return toast(error.message,"bad");
  await fetchAll();openSectors();
 };
 window.resolveIncident=async id=>{
  const i=incident(id);if(!i)return;
  const resolution=prompt("Como o problema foi resolvido?");if(!resolution?.trim())return;
- const {error}=await sb.from("equipment_incidents").update({status:"resolved",resolution:resolution.trim(),resolved_by:state.profile.id,resolved_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
+ const payload={status:"resolved",resolution:resolution.trim(),resolved_by:state.profile.id,resolved_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+ const {error}=state.trainingMode?trainingWrite("equipment_incidents","update",payload,id):await sb.from("equipment_incidents").update(payload).eq("id",id);
  if(error)return toast(error.message,"bad");
  await fetchAll();renderPage();toast("Ocorrência encerrada e equipamento marcado como operacional.","good");
 };

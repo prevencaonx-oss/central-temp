@@ -205,11 +205,11 @@ function navItems(){
  if(can("dashboard.network"))out.push(["network","DG","Dashboard Geral","","Visão geral"]);
  if(can("dashboard.store"))out.push(["store","DL","Dashboard da Loja","","Visão geral"]);
 
+ if(can("stores.view")||can("stores.manage"))out.push(["stores","LJ","Lojas","","Operação"]);
+ if(can("equipment.view")||can("equipment.manage"))out.push(["equipment","EQ","Equipamentos","","Operação"]);
  if(can("readings.view")||can("readings.create"))out.push(["readings","CT","Coletas","","Operação"]);
  if(can("alerts.view")&&state.profile.role!=="agent")out.push(["pending","AL","Alertas",openAlerts||"","Operação"]);
- if(can("equipment.view")||can("equipment.manage"))out.push(["equipment","EQ","Equipamentos","","Operação"]);
 
- if(can("stores.view")||can("stores.manage"))out.push(["stores","LJ","Lojas","","Gestão"]);
  if(can("reports.view"))out.push(["reports","RP","Relatórios","","Gestão"]);
  if(can("users.view")||can("users.manage_agents")||can("users.manage_all"))out.push(["users","US","Usuários","","Gestão"]);
  if(can("audit.view"))out.push(["audit","AU","Auditoria","","Gestão"]);

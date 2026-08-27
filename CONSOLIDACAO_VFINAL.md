@@ -23,6 +23,10 @@ Identidade NILO Supermercado; nome CONTROLE DE TEMPERATURA; logo oficial; mascot
 - `assets/app-01.js` ... `assets/app-09.js`
 - `assets/base-01.css` ... `assets/base-05.css`
 - `assets/nilo.css`
+- `assets/visual-fidelity.css`
+- `assets/visual-exato.js`
+- `assets/nilo-logo-transparent.png`
+- `assets/triela-logo.png`
 - `assets/nilo-logo.webp`
 - `assets/nilo-mascote.webp`
 
@@ -36,6 +40,15 @@ Não usar Base64/gzip para reconstruir o app, `atob()`, `document.write()` para 
 - frequência por horas removida da lógica nova; meta diária é 3 coletas por equipamento.
 - `nilo.css`, logo e mascote integrados na branch consolidada.
 - `base-05.css` corrigido após verificação de integridade.
+- carregamento inicial protegido por timeout e recuperação de falhas.
+- observador visual corrigido para não gerar ciclo infinito no navegador.
+- telas de login e aplicação isoladas corretamente pelo estado `hidden`.
+- ícones do login e título mobile corrigidos após validação visual.
 
-## Próxima validação antes de publicar
-Teste funcional do fluxo Login -> Rede/Loja -> Dashboard -> Coleta -> Alertas -> Relatórios -> Usuários/Minha Conta, seguido de validação responsiva desktop/mobile.
+## Validação concluída antes de publicar
+- Smoke test funcional das 10 áreas principais, com 4 indicadores no dashboard e sem valores `undefined`/`NaN`.
+- Validação em navegador real nas resoluções desktop 1440x1024 e mobile 390x844.
+- Login e dashboard conferidos nas duas resoluções, sem estouro horizontal ou erros de console.
+- Branch pronta para aprovação visual antes de qualquer alteração em `main` ou publicação.
+- Interface realinhada à referência aprovada “CENTRAL DE TEMPERATURA”, com login bipartido, dashboard compacto, menu mobile e marca TRIELA SOLUÇÕES no login e na navegação.
+- Dashboard refinado pela segunda referência: data e filtro no topo, comparativos nos KPIs, datas no gráfico, status completos na tabela e mascote ampliado no banner institucional.

@@ -1,0 +1,70 @@
+function hubQuick(icon,title,sub,action,cls='blue'){
+  return `<button class="hub-quick hub-quick-premium ${cls}" onclick="${action}" title="${esc(title)}">
+    <span class="hub-quick-icon">${hubIcon(icon)}</span>
+    <span class="hub-quick-text"><b>${title}</b><small>${sub}</small></span>
+    <span class="hub-quick-arrow">›</span>
+  </button>`
+}
+function hubCompactActions(){
+  return `<section class="panel hub-compact-actions hub-actions-premium">
+    <div class="panel-title"><div><h3>Ações rápidas</h3><p>Comandos principais da operação.</p></div><span class="badge blue">CENTRAL</span></div>
+    <div class="hub-compact-grid hub-compact-grid-premium">
+      ${hubQuick('plus','Registrar entregas','Nova entrega','hubOpenRegister()','yellow')}
+      ${hubQuick('calendar','Agendar entregas','Data e horário','hubSchedule()','purple')}
+      ${hubQuick('route','Início de ciclo','Criar e iniciar ciclo','hubNewRoute()','blue')}
+      ${hubQuick('return','Fim de ciclo','Retorno e fechamento','hubFinishCycle()','green')}
+      ${hubQuick('gauge','Quilometragem','Abrir ou fechar KM','hubKm()','teal')}
+      ${hubQuick('money','Custo','Registrar despesa','hubCost()','orange')}
+    </div>
+    ${hubSmartRoutePanel()}
+  </section>`
+}
+function hubPack(v){return encodeURIComponent(String(v||''))}
+function hubLiveStat(icon,cls,label,value,detail,popTitle,popBody,goPage=''){
+  const title=hubPack(popTitle),body=hubPack(popBody),go=hubPack(goPage);
+  return `<button class="stat-card hub-stat hub-stat-premium" type="button" onclick="openHubLivePanel(this,'${title}','${body}','${go}')">
+    <div class="stat-icon ${cls}">${typeof icon==='string'&&icon.startsWith('<')?icon:hubIcon(icon)}</div>
+    <div class="hub-stat-copy"><span class="label">${label}</span><strong class="value">${value}</strong><small>${detail||''}</small></div>
+    <span class="hub-live-orbit"><i></i></span>
+    <span class="hub-stat-open">Ver detalhes</span>
+  </button>`
+}
+function ensureHubLiveDrawer(){
+  let drawer=document.getElementById('hubLiveDrawer');
+  if(drawer)return drawer;
+  const stats=document.querySelector('.hub-stats');if(!stats)return null;
+  drawer=document.createElement('section');drawer.id='hubLiveDrawer';drawer.className='hub-live-drawer';drawer.setAttribute('aria-live','polite');
+  stats.insertAdjacentElement('afterend',drawer);return drawer;
+}
+function openHubLivePanel(card,titlePacked,bodyPacked,goPacked){
+  const drawer=ensureHubLiveDrawer();if(!drawer)return;
+  const title=decodeURIComponent(titlePacked),body=decodeURIComponent(bodyPacked),go=decodeURIComponent(goPacked);
+  const active=card.classList.contains('hub-selected');
+  document.querySelectorAll('.hub-stat-premium').forEach(x=>x.classList.remove('hub-selected'));
+  if(active){closeHubLivePanel();return}
+  card.classList.add('hub-selected');
+  drawer.innerHTML=`<div class="hub-live-drawer-shell"><div class="hub-live-drawer-head"><div><span>INFORMAÇÕES AO VIVO</span><h3>${title}</h3><p>Dados atualizados da operação.</p></div><button class="hub-live-drawer-close" onclick="closeHubLivePanel()" aria-label="Fechar">×</button></div><div class="hub-live-drawer-body">${body||'<div class="hub-live-empty">Nenhum registro neste momento.</div>'}</div>${go?`<div class="hub-live-drawer-foot"><button class="soft-btn" onclick="go('${go}')">Abrir módulo completo</button></div>`:''}</div>`;
+  drawer.classList.remove('closing');drawer.classList.add('open');
+  requestAnimationFrame(()=>drawer.classList.add('visible'));
+}
+function closeHubLivePanel(){
+  const drawer=document.getElementById('hubLiveDrawer');if(!drawer)return;
+  document.querySelectorAll('.hub-stat-premium').forEach(x=>x.classList.remove('hub-selected'));
+  drawer.classList.remove('visible');drawer.classList.add('closing');
+  setTimeout(()=>{if(!drawer.classList.contains('visible')){drawer.classList.remove('open','closing');drawer.innerHTML=''}},220);
+}
+function hubStyleModal(theme='blue'){
+  setTimeout(()=>{
+    const m=document.getElementById('modal');if(!m||m.classList.contains('hidden'))return;
+    m.classList.add('hub-action-modal');
+    ['yellow','purple','blue','green','teal','orange'].forEach(x=>m.classList.remove('hub-theme-'+x));
+    m.classList.add('hub-theme-'+theme);
+  },0)
+}
+function hubOpenRegister(){openRegister();hubStyleModal('yellow')}
+function hubSchedule(){openRegister();hubStyleModal('purple');setTimeout(()=>{const r=document.querySelector('input[name="scheduleMode"][value="scheduled"]');if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}));const box=document.getElementById('scheduleBox');if(box)box.scrollIntoView({behavior:'smooth',block:'center'})}},50)}
+function hubNewRoute(){openCycleBuilder();hubStyleModal('blue')}
+function hubFinishCycle(){const c=state.cycles.find(x=>x.status==='Em andamento');if(!c)return toast('Não há ciclo em andamento para finalizar.');openCycle(c.id);hubStyleModal('green')}
+function hubKm(){const vehicles=state.vehicles.filter(v=>v.active);const missing=vehicles.find(v=>!state.kmRecords.some(r=>r.date===TODAY&&r.vehicleId===v.id));if(missing){openKm(missing.id);hubStyleModal('teal');return}const open=state.kmRecords.find(r=>r.date===TODAY&&r.final==null);if(open){closeKm(open.id);hubStyleModal('teal');return}go('fleet')}
+function hubCost(){addCostDialog();hubStyleModal('orange')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHubLivePanel()});

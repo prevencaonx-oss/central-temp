@@ -9,17 +9,17 @@ function hubCompactActions(){
   return `<section class="panel hub-compact-actions hub-actions-premium">
     <div class="panel-title"><div><h3>Ações rápidas</h3><p>Comandos principais da operação.</p></div><span class="badge blue">CENTRAL</span></div>
     <div class="hub-compact-grid hub-compact-grid-premium">
-      ${hubQuick('plus','Registrar entregas','Nova entrega','hubOpenRegister()','yellow')}
-      ${hubQuick('calendar','Agendar entregas','Data e horário','hubSchedule()','purple')}
-      ${hubQuick('route','Início de ciclo','Criar e iniciar ciclo','hubNewRoute()','blue')}
-      ${hubQuick('return','Fim de ciclo','Retorno e fechamento','hubFinishCycle()','green')}
-      ${hubQuick('gauge','Quilometragem','Abrir ou fechar KM','hubKm()','teal')}
-      ${hubQuick('money','Custo','Registrar despesa','hubCost()','orange')}
+      ${hubQuick('plus','REGISTRAR ENTREGAS','Nova entrega','hubOpenRegister()','yellow')}
+      ${hubQuick('calendar','AGENDAR ENTREGAS','Data e horário','hubSchedule()','purple')}
+      ${hubQuick('route','INÍCIO DE CICLO','Criar e iniciar ciclo','hubNewRoute()','blue')}
+      ${hubQuick('return','FIM DE CICLO','Retorno e fechamento','hubFinishCycle()','green')}
+      ${hubQuick('gauge','QUILOMETRAGEM','Abrir ou fechar KM','hubKm()','teal')}
+      ${hubQuick('money','CUSTO','Registrar despesa','hubCost()','orange')}
     </div>
     ${hubSmartRoutePanel()}
   </section>`
 }
-function hubPack(v){return encodeURIComponent(String(v||''))}
+function hubPack(v){return encodeURIComponent(String(v||'')).replace(/'/g,'%27')}
 function hubLiveStat(icon,cls,label,value,detail,popTitle,popBody,goPage=''){
   const title=hubPack(popTitle),body=hubPack(popBody),go=hubPack(goPage);
   return `<button class="stat-card hub-stat hub-stat-premium" type="button" onclick="openHubLivePanel(this,'${title}','${body}','${go}')">

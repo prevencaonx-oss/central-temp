@@ -1,0 +1,74 @@
+function sla(d){if(['Programada','Reagendada','Cancelada','Retirada na loja'].includes(d.status))return {label:'Não aplicável',cls:'gray'};const end=d.finalized||isoNow();const t=mins(d.purchase,end);if(t>state.settings.slaClient)return{label:'Atrasado',cls:'red'};if(t>state.settings.slaClient*.85)return{label:'Atenção',cls:'orange'};return{label:'No prazo',cls:'green'}}
+function calcKPIs(ds=todayDs()){
+  const final=ds.filter(d=>d.status==='Finalizada');const orig=ds.filter(d=>!d.parentId);const success=orig.length?Math.round(final.filter(d=>d.attemptNo===1).length/orig.length*1000)/10:100;const ret=orig.length?Math.round(ds.filter(d=>d.status==='Devolvida').length/orig.length*1000)/10:0;
+  const gross=ds.reduce((a,d)=>a+Number(d.tax||0),0),refund=ds.reduce((a,d)=>a+Number(d.refund||0),0),net=gross-refund,cost=state.costs.filter(c=>c.date===TODAY).reduce((a,c)=>a+Number(c.amount||0),0);
+  const km=state.kmRecords.filter(k=>k.date===TODAY&&k.final!=null).reduce((a,k)=>a+(k.final-k.initial),0);
+  const times=final.map(d=>mins(d.purchase,d.finalized));const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
+  return{count:orig.length,final:final.length,success,ret,gross,refund,net,cost,balance:net-cost,km,avg,costPer:final.length?cost/final.length:0}
+}
+function qualityScore(d){return [d.cupom,d.doc,d.pdv,d.bairro,d.purchase].filter(Boolean).length/5*100}
+function nextAction(){const blocks=closeDayBlocks();const kmMissing=state.vehicles.filter(v=>v.active&&!state.kmRecords.some(k=>k.date===TODAY&&k.vehicleId===v.id&&k.final!=null));const wait=activeDeliveries().filter(d=>d.status==='Na loja');const route=activeDeliveries().filter(d=>d.status==='Em rota');const dev=activeDeliveries().filter(d=>d.status==='Devolvida'&&!d.nextAction);if(dev.length)return{icon:'↩',title:`Resolver ${dev.length} devolvida(s)`,text:'Defina reagendamento, retirada, cancelamento ou outra próxima ação.',button:'Ver devolvidas',go:'deliveries'};if(wait.length)return{icon:'📦',title:`Montar saída para ${wait.length} entrega(s)`,text:'Há compras separadas na loja aguardando coleta pelo entregador.',button:'Montar nova saída',go:'routes'};if(route.length)return{icon:'🚚',title:`Acompanhar ${route.length} entrega(s) em rota`,text:'Existem ciclos abertos e entregas que ainda precisam de conclusão ou ocorrência.',button:'Abrir ciclos',go:'routes'};if(kmMissing.length)return{icon:'KM',title:`Complete a quilometragem de ${kmMissing[0].name}`,text:'O KM diário é essencial para calcular KM por ciclo e KM por entrega.',button:'Ver quilometragem',go:'fleet'};if(!state.closedDay)return{icon:'✓',title:'Operação pronta para fechamento',text:blocks.length?blocks.join(' • '):'Todos os bloqueios principais foram resolvidos.',button:'Encerrar o dia',action:'close'};return{icon:'✓',title:'Dia encerrado',text:'A operação foi encerrada. Você pode reabrir o dia se necessário.',button:'Ver fechamento',action:'close'}}
+
+const nav=[
+  {section:'OPERAÇÃO'},
+  {id:'central',icon:'⌂',label:'Central de Operação'},
+  {id:'deliveries',icon:'⬡',label:'Entregas & Programadas'},
+  {id:'routes',icon:'⌖',label:'Rotas & Ciclos'},
+  {id:'search',icon:'⌕',label:'Pesquisar entregas'},
+  {section:'ANÁLISES'},
+  {id:'performance',icon:'▥',label:'Desempenho'},
+  {id:'reports',icon:'▤',label:'Relatórios'},
+  {id:'fleet',icon:'KM',label:'Quilometragem & Frota'},
+  {id:'costs',icon:'R$',label:'Custos & Financeiro'},
+  {section:'ADMINISTRAÇÃO'},
+  {id:'clients',icon:'♙',label:'Clientes'},
+  {id:'admin',icon:'⚙',label:'Administração & Cadastros'},
+  {id:'users',icon:'♟',label:'Usuários'},
+  {id:'settings',icon:'◉',label:'Configurações'},
+  {id:'logs',icon:'☷',label:'Logs do Sistema'},
+  {id:'trash',icon:'♲',label:'Lixeira'},
+  {section:'TREINAMENTO'},
+  {id:'training',icon:'◇',label:'Ambiente de Treinamento'}
+];
+const meta={
+ central:['Central de Operação','O que está acontecendo agora, o que precisa de ação e qual é o próximo passo.'],
+ deliveries:['Entregas & Programadas','Registre novas compras, acompanhe entregas de hoje e visualize programações futuras.'],
+ routes:['Ciclos & Rotas','Planeje, acompanhe e analise seus ciclos de entrega e roteiros.'],
+ search:['Pesquisar entregas','Localize compras, rastreie tentativas e consulte a linha do tempo completa.'],
+ performance:['Análises & Relatórios','Acompanhe indicadores, desempenho e insights para tomar as melhores decisões.'],
+ reports:['Relatórios','Gere relatórios por período, Excel com múltiplas abas e versão para impressão/PDF.'],
+ fleet:['Quilometragem & Frota','Acompanhe a quilometragem da frota, eficiência e indicadores operacionais.'],
+ costs:['Custos & Financeiro','Controle custos da frota, taxas, reembolsos e saldo operacional.'],
+ clients:['Clientes','Analise recorrência, bairros atendidos, problemas e faturamento por cliente.'],
+ admin:['Administração & Cadastros','Gerencie cadastros, configurações e ferramentas administrativas.'],
+ users:['Usuários','Controle acessos, perfis e status dos usuários.'],
+ settings:['Configurações','Ajuste regras operacionais, SLA, origem e roteirização.'],
+ logs:['Logs do Sistema','Consulte o histórico de ações e auditoria.'],
+ trash:['Lixeira','Recupere ou exclua definitivamente registros removidos.'],
+ training:['Ambiente de Treinamento','Use dados separados para treinamento, testes e simulações.']
+};
+
+function buildNav(){
+  $('#nav').innerHTML=nav.map(x=>x.section?`<div class="nav-section">${x.section}</div>`:`<button class="nav-btn ${page===x.id?'active':''}" data-page="${x.id}"><span class="nav-icon">${x.icon}</span>${x.label}</button>`).join('');
+  $$('#nav [data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+  const mobile=[['central','⌂','Início'],['deliveries','⬡','Entregas'],['routes','⌖','Rotas'],['reports','▥','Relatórios'],['admin','•••','Mais']];
+  $('#mobileNav').innerHTML=mobile.map(x=>`<button data-page="${x[0]}" class="${page===x[0]?'active':''}"><span>${x[1]}</span>${x[2]}</button>`).join('');
+  $$('#mobileNav [data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+}
+function go(p){page=p;render();$('#sidebar').classList.remove('open');window.scrollTo(0,0)}
+function render(){buildNav();const m=meta[page]||meta.central;$('#pageTitle').textContent=m[0];$('#pageSubtitle').textContent=m[1];$('#envLabel').textContent=mode==='training'?'Treinamento':'Homologação';$('#homologBanner').innerHTML=mode==='training'?'🎓 <b>MODO TREINAMENTO</b> — dados separados da operação simulada.':'🧪 <b>AMBIENTE DE HOMOLOGAÇÃO</b> — use somente dados fictícios. Nada aqui é produção.';const views={central,deliveries:deliveriesPage,routes:routesPage,search:searchPage,performance:performancePage,reports:reportsPage,fleet:fleetPage,costs:costsPage,clients:clientsPage,admin:adminPage,users:usersPage,settings:settingsPage,logs:logsPage,trash:trashPage,training:trainingPage};$('#content').innerHTML=(views[page]||central)();bindPage()}
+function panel(title,body,action=''){return `<section class="panel"><div class="panel-title"><h3>${title}</h3>${action}</div>${body}</section>`}
+function stat(icon,cls,label,value,detail){return `<div class="stat-card"><div class="stat-icon ${cls}">${icon}</div><div><span class="label">${label}</span><strong class="value">${value}</strong><small>${detail||''}</small></div></div>`}
+function statusBadge(s){return `<span class="badge ${statusClass(s)}">${s}</span>`}
+function fakeMap(cycle){const has=!!cycle;return `<div class="fake-map"><svg class="route-svg" viewBox="0 0 500 180" preserveAspectRatio="none"><polyline class="route-line" points="75,130 125,85 210,120 255,60 350,35 415,100"/>${[[75,130,1],[125,85,2],[255,60,3],[350,35,4],[415,100,5]].map(p=>`<g class="map-stop"><circle cx="${p[0]}" cy="${p[1]}" r="12"/><text x="${p[0]}" y="${p[1]}">${p[2]}</text></g>`).join('')}<g class="map-home"><circle cx="45" cy="90" r="13"/><text x="45" y="94" text-anchor="middle" fill="white" font-size="12">⌂</text></g><g class="map-truck"><circle cx="450" cy="130" r="14"/><text x="450" y="134" text-anchor="middle" fill="white" font-size="12">🚚</text></g></svg><div class="map-toolbar"><span>＋</span><span>−</span><span>◎</span></div></div><div class="map-meta"><div><small>Entregas na Rota</small><strong>${has?cycle.deliveryIds.length:0}</strong></div><div><small>Distância estimada</small><strong>${has?'18,6 km':'0 km'}</strong></div><div><small>Tempo estimado</small><strong>${has?'1h 15min':'—'}</strong></div></div>`}
+function chartSvg(vals=state.historyVolume){const max=Math.max(...vals,1),pts=vals.map((v,i)=>`${i/(vals.length-1)*100},${100-v/max*85}`).join(' ');return `<div class="chart"><div class="chart-grid"></div><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polygon class="spark-area" points="0,100 ${pts} 100,100"/><polyline class="spark-line" points="${pts}" vector-effect="non-scaling-stroke"/>${vals.map((v,i)=>`<circle class="spark-point" cx="${i/(vals.length-1)*100}" cy="${100-v/max*85}" r="1.8" vector-effect="non-scaling-stroke"/>`).join('')}</svg><div class="chart-labels"><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span><span>Seg</span><span>Ter</span><span>Hoje</span></div></div>`}
+function deliveryTable(ds){return `<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Compra</th><th>Cliente</th><th>Bairro</th><th>Horário</th><th>Status</th><th>Tipo</th><th>Ações</th></tr></thead><tbody>${ds.length?ds.map((d,i)=>`<tr><td>${i+1}</td><td><b>Nº ${d.purchaseNo}</b></td><td>${esc(d.client)}</td><td>${esc(d.bairro)}</td><td>${fmtTime(d.purchase)}</td><td>${statusBadge(d.status)}</td><td>${d.large?'<span class="badge purple">Grande</span>':'<span class="badge blue">Normal</span>'}</td><td><div class="table-actions"><button class="icon-action" title="Abrir" onclick="openDelivery('${d.id}')">◉</button><button class="icon-action" title="Mais" onclick="openDelivery('${d.id}')">⋮</button></div></td></tr>`).join(''):`<tr><td colspan="8"><div class="empty">Nenhuma entrega encontrada.</div></td></tr>`}</tbody></table></div>`}
+function timelineDeliveryCard(d){const steps=[['Compra',d.purchase],['Saída',d.exit],['Entregue ao cliente',d.arrival||d.finalized],['Retorno à loja',d.returnTime]];return `<article class="timeline-card ${d.priority?'priority-card':d.status==='Finalizada'?'success-card':''}"><div class="tc-main"><div class="tc-top"><div><small>Nº DO CUPOM</small><b>${esc(d.cupom)}</b><div class="tc-meta">DOC ${esc(d.doc)} • Caixa ${esc(d.pdv)} • ${esc(d.bairro)}<br>Endereço: ${esc(d.street)}, nº ${esc(d.number)}</div><div class="tc-client">Cliente: ${esc(d.client)}</div><div class="tc-meta">${esc(d.phone)}</div></div><div><div class="tc-id">COMPRA<br>Nº ${d.purchaseNo}</div>${d.priority?'<span class="priority">⚑ PRIORIDADE</span>':''}<div style="margin-top:5px">${statusBadge(d.status)}</div></div></div></div><div class="timeline-steps">${steps.map((s,i)=>`<div class="step ${s[1]?'done':i===steps.findIndex(x=>!x[1])?'active':''}"><div class="bubble">${s[1]?'✓':i+1}</div><small>${s[0]}</small><b>${s[1]?fmtTime(s[1]):'—'}</b></div>`).join('')}</div></article>`}
+
+function central(){const ds=todayDs(),k=calcKPIs(ds),wait=ds.filter(d=>d.status==='Na loja').length,route=ds.filter(d=>d.status==='Em rota').length,attention=ds.filter(d=>['Devolvida'].includes(d.status)||sla(d).cls==='red').length,prog=ds.filter(d=>d.status==='Programada').length;const openCycle=state.cycles.find(c=>c.status==='Em andamento');const na=nextAction();const topDs=ds.slice(-5).reverse();return `<div class="page-grid">
+  <div class="stats">${stat('⬡','blue','Aguardando saída',wait,'Compra(s) pronta(s) na loja')}${stat('🚚','orange','Em rota',route,`${state.cycles.filter(c=>c.status==='Em andamento').length} ciclo(s) aberto(s)`)}${stat('!','red','Precisa de atenção',attention,'Críticas e devolvidas')}${stat('◷','blue','Programadas para hoje',prog,'Programações do dia')}${stat('KM','green','KM rodado hoje',`${num(k.km)} km`,`${state.kmRecords.filter(x=>x.final!=null).length} veículo(s) fechado(s)`)}</div>
+  <div class="grid-3"><section class="panel"><div class="panel-title"><h3>Desempenho diário de entregas</h3><select class="form-control"><option>Últimos 7 dias</option></select></div>${chartSvg()}</section><section class="next-action"><span class="eyebrow">PRÓXIMA AÇÃO RECOMENDADA</span><div class="km-badge">${na.icon}</div><h3>${na.title}</h3><p>${na.text}</p><button class="blue-btn" onclick="${na.action==='close'?'closeDayDialog()':`go('${na.go}')`}">${na.button}</button></section><section class="panel"><div class="panel-title"><h3>Rota do Entregador</h3>${openCycle?'<span class="badge green">Em andamento</span>':'<span class="badge gray">Sem rota</span>'}</div>${fakeMap(openCycle)}</section></div>
+  <div class="grid-2"><section class="panel"><div class="panel-title"><h3>Entregas do dia</h3><button class="link-btn" onclick="go('deliveries')">Ver todas ›</button></div>${deliveryTable(topDs)}</section><section class="panel"><div class="panel-title"><div><h3>Entregas e próximas ações</h3><p>Cada compra mostra uma linha do tempo clara.</p></div><button class="blue-btn sm-btn" onclick="openRegister()">＋ Registrar compra</button></div><div class="delivery-cards">${ds.slice(0,2).map(timelineDeliveryCard).join('')}</div></section></div>
+  ${dayClosureCard()}
+</div>`}
+function dayClosureCard(){const blocks=closeDayBlocks();return `<div class="close-day"><div class="stat-icon ${state.closedDay?'green':'blue'}">${state.closedDay?'✓':'◷'}</div><div><strong>${state.closedDay?'Operação do dia encerrada':'Operação do dia aberta'}</strong><small>${state.closedDay?`Fechada em ${fmtDateTime(state.lastClosing)}.`:blocks.length?`${blocks.length} bloqueio(s) antes do fechamento.`:'Sem bloqueios críticos para fechar.'}</small></div><span class="badge ${state.closedDay?'green':'blue'}">${state.closedDay?'ENCERRADO':'ABERTO'}</span><button class="${state.closedDay?'soft-btn':'blue-btn'}" onclick="closeDayDialog()">${state.closedDay?'Reabrir dia':'Encerrar operação do dia'}</button></div>`}

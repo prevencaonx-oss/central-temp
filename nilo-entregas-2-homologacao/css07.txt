@@ -1,0 +1,49 @@
+/* CENTRAL V7 — quick actions: titles always visible */
+.hub-actions-v7{container-type:inline-size}
+.hub-actions-v7 .hub-compact-grid-premium{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.hub-actions-v7 .hub-quick-v7{height:132px!important;min-height:132px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;gap:0!important;padding:13px 12px 12px!important;position:relative!important;overflow:hidden!important;text-align:left!important}
+.hub-actions-v7 .hub-quick-v7 .hub-quick-icon{width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important}
+.hub-actions-v7 .hub-quick-v7 .hub-quick-text{width:100%!important;min-width:0!important;margin-top:10px!important;display:block!important;overflow:visible!important}
+.hub-actions-v7 .hub-quick-v7 .hub-quick-text b{display:block!important;width:100%!important;min-height:0!important;height:auto!important;max-height:none!important;overflow:visible!important;-webkit-line-clamp:unset!important;-webkit-box-orient:unset!important;white-space:normal!important;font-size:10.5px!important;line-height:1.18!important;font-weight:950!important;color:#0a2148!important;letter-spacing:-.12px!important}
+.hub-actions-v7 .hub-quick-v7 .hub-quick-text small{display:block!important;width:calc(100% - 15px)!important;height:auto!important;max-height:none!important;overflow:visible!important;-webkit-line-clamp:unset!important;-webkit-box-orient:unset!important;white-space:normal!important;margin-top:5px!important;font-size:7.6px!important;line-height:1.25!important;color:#708099!important}
+.hub-actions-v7 .hub-quick-v7 .hub-quick-arrow{position:absolute!important;right:10px!important;bottom:10px!important;font-size:18px!important;line-height:1!important;color:#9aa8ba!important}
+@container (max-width:440px){.hub-actions-v7 .hub-compact-grid-premium{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hub-actions-v7 .hub-quick-v7{height:118px!important;min-height:118px!important}}
+@container (max-width:285px){.hub-actions-v7 .hub-compact-grid-premium{grid-template-columns:1fr!important}}
+
+/* CENTRAL V7 — themed live-card animation */
+.hub-stat-v7{min-height:132px!important}
+.hub-stat-v7 .hub-stat-routefx{position:absolute!important;left:16px!important;right:16px!important;bottom:8px!important;height:18px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;transition:opacity .18s ease!important}
+.hub-stat-v7:hover .hub-stat-routefx,.hub-stat-v7.hub-selected .hub-stat-routefx{opacity:1!important}
+.hub-stat-road{position:absolute;left:0;right:0;top:9px;border-top:1.5px dashed rgba(10,103,236,.28)}
+.hub-stat-road:before,.hub-stat-road:after{content:"";position:absolute;top:-4px;width:7px;height:7px;border-radius:50%;background:#0b67ed;box-shadow:0 0 0 3px rgba(11,103,237,.08)}
+.hub-stat-road:before{left:0}.hub-stat-road:after{right:0}
+.hub-stat-truck{position:absolute;left:0;top:0;width:18px;height:18px;color:#0b67ed;opacity:0}
+.hub-stat-truck .hub-svg-icon{width:18px!important;height:18px!important}
+.hub-stat-v7:hover .hub-stat-truck,.hub-stat-v7.hub-selected .hub-stat-truck{opacity:1;animation:hubTruckCard 1.15s cubic-bezier(.2,.75,.25,1) both}
+@keyframes hubTruckCard{0%{left:0;transform:translateX(-2px)}70%{left:calc(100% - 20px);transform:translateX(0)}100%{left:calc(100% - 20px);transform:translateX(0)}}
+.hub-stat-v7 .hub-stat-open{right:12px!important;bottom:28px!important}
+
+/* CENTRAL V7 — drawer keeps approved appearance, opens from hover */
+.hub-live-drawer-v7 .hub-live-drawer-head{align-items:center!important}
+.hub-live-heading{min-width:180px}
+.hub-live-motion{position:relative;width:min(260px,28vw);height:44px;flex:0 1 260px;margin-left:auto;margin-right:8px;overflow:hidden}
+.hub-live-motion-road{position:absolute;left:20px;right:20px;top:22px;border-top:2px dashed rgba(185,217,255,.36)}
+.hub-live-motion-road:before,.hub-live-motion-road:after{content:"";position:absolute;top:-5px;width:9px;height:9px;border-radius:50%;background:#88bfff;box-shadow:0 0 0 4px rgba(136,191,255,.1)}
+.hub-live-motion-road:before{left:0}.hub-live-motion-road:after{right:0}
+.hub-live-motion-home,.hub-live-motion-truck{position:absolute;top:11px;width:22px;height:22px;color:#e8f3ff;font-style:normal;display:grid;place-items:center}
+.hub-live-motion-home{left:0}.hub-live-motion-truck{left:22px;animation:hubTruckDrawer 2.2s cubic-bezier(.35,.1,.2,1) infinite}
+.hub-live-motion-home .hub-svg-icon,.hub-live-motion-truck .hub-svg-icon{width:20px!important;height:20px!important;color:inherit!important}
+.hub-live-motion-pin{position:absolute;right:1px;top:16px;width:10px;height:10px;border-radius:50% 50% 50% 0;background:#ffd400;transform:rotate(-45deg);box-shadow:0 0 0 5px rgba(255,212,0,.1)}
+@keyframes hubTruckDrawer{0%{left:22px}55%{left:calc(100% - 46px)}75%{left:calc(100% - 46px)}100%{left:22px}}
+.hub-live-drawer-shell{transition:opacity .26s ease,transform .26s cubic-bezier(.2,.8,.2,1)!important}
+.hub-live-drawer.visible .hub-live-drawer-shell{animation:hubDrawerReveal .32s cubic-bezier(.2,.8,.2,1) both}
+@keyframes hubDrawerReveal{0%{opacity:0;transform:translateY(-10px) scale(.993)}100%{opacity:1;transform:none}}
+
+/* Arrival time editor */
+.hub-arrival-section{border-top:4px solid #0b67ed!important}
+.hub-arrival-section .hub-time-input{font-size:18px!important;font-weight:900!important;letter-spacing:.8px!important;color:#082b5f!important}
+.hub-arrival-shortcut{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #e6edf5;color:#65748b;font-size:8px}.hub-arrival-shortcut b{color:#0c2858}
+
+@media(max-width:980px){.hub-stat-v7 .hub-stat-routefx{display:none!important}.hub-live-motion{display:none}.hub-actions-v7 .hub-quick-v7{height:120px!important;min-height:120px!important}}
+@media(max-width:620px){.hub-actions-v7 .hub-compact-grid-premium{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hub-arrival-shortcut{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.hub-stat-truck,.hub-live-motion-truck,.hub-live-drawer.visible .hub-live-drawer-shell{animation:none!important}}

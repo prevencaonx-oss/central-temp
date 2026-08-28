@@ -1,0 +1,14 @@
+function restoreBackupFile(file){const reader=new FileReader();reader.onload=()=>{try{const p=JSON.parse(reader.result);if(!p||!p.state||!String(p.version||'').startsWith('2.0'))throw new Error('incompatível');if(!confirm(`Backup compatível. Restaurar ${p.state.deliveries?.length||0} entrega(s), ${p.state.cycles?.length||0} ciclo(s) e substituir os dados atuais?\nUma cópia dos dados atuais será mantida neste navegador.`))return;localStorage.setItem(activeKey()+'_before_restore',JSON.stringify(state));state=p.state;state.version=APP_VERSION;save();audit('Backup restaurado',p.createdAt||'arquivo');render();toast('Backup restaurado com sucesso')}catch(e){toast('Backup inválido ou incompatível')}};reader.readAsText(file)}
+function switchMode(target){if(target===mode){go(target==='training'?'training':'central');return}mode=target;localStorage.setItem(MODE_STORE,mode);state=load();page=target==='training'?'central':'central';render();toast(target==='training'?'Modo treinamento ativado':'Operação simulada ativada')}
+function resetTraining(){localStorage.setItem(STORE_TRAIN,JSON.stringify(seed(true)));if(mode==='training')state=load();render();toast('Dados de treinamento restaurados')}
+function clearTraining(){if(!confirm('Apagar todos os dados de treinamento?'))return;localStorage.removeItem(STORE_TRAIN);if(mode==='training')state=seed(true);render();toast('Dados de treinamento apagados')}
+
+$('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
+$('#envBtn').onclick=()=>switchMode(mode==='training'?'real':'training');
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+$('#restoreInput').onchange=e=>{const f=e.target.files?.[0];if(f)restoreBackupFile(f);e.target.value=''};
+window.addEventListener('online',()=>{$('#syncSub').textContent='Internet disponível • homologação local';toast('Conexão restaurada')});
+window.addEventListener('offline',()=>{$('#syncSub').textContent='Sem internet • dados locais disponíveis';toast('Modo offline ativo')});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+Object.assign(window,{go,openRegister,closeModal,openDelivery,completeTrip,markArrival,finishDelivery,returnDelivery,nextActionDialog,startScheduled,openCycleBuilder,openCycle,manageCycle,removeFromCycle,addToCycle,closeCycle,detectCycles,openGoogleMaps,showProgrammed,runSearch,applyReport,exportExcel31,openKm,closeKm,showKm,addCostDialog,addUserDialog,toggleUser,simpleManager,closeDayDialog,closeDay,reopenDay,trashItem,restoreTrash,deleteTrash,emptyTrash,downloadBackup,switchMode,resetTraining,clearTraining,quickRegister});
+render();

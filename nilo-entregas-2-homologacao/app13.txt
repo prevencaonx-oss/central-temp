@@ -1,0 +1,150 @@
+let __hubHoverOpenTimer=null;
+let __hubHoverCloseTimer=null;
+let __hubLivePinned=false;
+let __hubLiveCard=null;
+
+function hubQuick(icon,title,sub,action,cls='blue'){
+  return `<button class="hub-quick hub-quick-premium hub-quick-v7 ${cls}" onclick="${action}" title="${esc(title)}">
+    <span class="hub-quick-icon">${hubIcon(icon)}</span>
+    <span class="hub-quick-text"><b>${title}</b><small>${sub}</small></span>
+    <span class="hub-quick-arrow">›</span>
+  </button>`
+}
+
+function hubCompactActions(){
+  return `<section class="panel hub-compact-actions hub-actions-premium hub-actions-v7">
+    <div class="panel-title"><div><h3>Ações rápidas</h3><p>Comandos principais da operação.</p></div><span class="badge blue">CENTRAL</span></div>
+    <div class="hub-compact-grid hub-compact-grid-premium">
+      ${hubQuick('plus','Registrar entregas','Nova entrega','hubOpenRegister()','yellow')}
+      ${hubQuick('calendar','Agendar entregas','Data e horário','hubSchedule()','purple')}
+      ${hubQuick('route','Início de ciclo','Criar e iniciar ciclo','hubNewRoute()','blue')}
+      ${hubQuick('return','Fim de ciclo','Retorno e fechamento','hubFinishCycle()','green')}
+      ${hubQuick('gauge','Quilometragem','Abrir ou fechar KM','hubKm()','teal')}
+      ${hubQuick('money','Custo','Registrar despesa','hubCost()','orange')}
+    </div>
+    ${hubSmartRoutePanel()}
+  </section>`
+}
+
+function hubLiveStat(icon,cls,label,value,detail,popTitle,popBody,goPage=''){
+  const title=hubPack(popTitle),body=hubPack(popBody),go=hubPack(goPage);
+  return `<button class="stat-card hub-stat hub-stat-premium hub-stat-v7" type="button"
+    onmouseenter="hubLiveEnter(this,'${title}','${body}','${go}')"
+    onmouseleave="hubLiveLeave(this)"
+    onclick="hubLiveClick(event,this,'${title}','${body}','${go}')">
+    <div class="stat-icon ${cls}">${typeof icon==='string'&&icon.startsWith('<')?icon:hubIcon(icon)}</div>
+    <div class="hub-stat-copy"><span class="label">${label}</span><strong class="value">${value}</strong><small>${detail||''}</small></div>
+    <span class="hub-live-orbit"><i></i></span>
+    <span class="hub-stat-routefx"><span class="hub-stat-road"></span><span class="hub-stat-truck">${hubIcon('truck')}</span></span>
+    <span class="hub-stat-open">Passe o mouse</span>
+  </button>`
+}
+
+function hubFineHover(){return !!(window.matchMedia&&window.matchMedia('(hover:hover) and (pointer:fine)').matches)}
+function hubCancelHoverTimers(){clearTimeout(__hubHoverOpenTimer);clearTimeout(__hubHoverCloseTimer)}
+function hubLiveEnter(card,title,body,go){
+  if(!hubFineHover())return;
+  hubCancelHoverTimers();
+  __hubHoverOpenTimer=setTimeout(()=>{__hubLivePinned=false;openHubLivePanel(card,title,body,go,'hover')},140);
+}
+function hubLiveLeave(card){
+  if(!hubFineHover()||__hubLivePinned)return;
+  clearTimeout(__hubHoverOpenTimer);
+  __hubHoverCloseTimer=setTimeout(()=>{if(!__hubLivePinned)closeHubLivePanel(false)},420);
+}
+function hubLiveClick(e,card,title,body,go){
+  e.preventDefault();e.stopPropagation();hubCancelHoverTimers();
+  if(__hubLivePinned&&__hubLiveCard===card){closeHubLivePanel(true);return}
+  __hubLivePinned=true;openHubLivePanel(card,title,body,go,'pinned');
+}
+
+function ensureHubLiveDrawer(){
+  let drawer=document.getElementById('hubLiveDrawer');
+  if(drawer)return drawer;
+  const stats=document.querySelector('.hub-stats');if(!stats)return null;
+  drawer=document.createElement('section');drawer.id='hubLiveDrawer';drawer.className='hub-live-drawer hub-live-drawer-v7';drawer.setAttribute('aria-live','polite');
+  drawer.addEventListener('mouseenter',()=>{clearTimeout(__hubHoverCloseTimer)});
+  drawer.addEventListener('mouseleave',()=>{if(!__hubLivePinned){clearTimeout(__hubHoverCloseTimer);__hubHoverCloseTimer=setTimeout(()=>closeHubLivePanel(false),300)}});
+  stats.insertAdjacentElement('afterend',drawer);return drawer;
+}
+
+function openHubLivePanel(card,titlePacked,bodyPacked,goPacked,mode='hover'){
+  const drawer=ensureHubLiveDrawer();if(!drawer)return;
+  const title=decodeURIComponent(titlePacked),body=decodeURIComponent(bodyPacked),go=decodeURIComponent(goPacked);
+  document.querySelectorAll('.hub-stat-premium').forEach(x=>x.classList.remove('hub-selected'));
+  card.classList.add('hub-selected');__hubLiveCard=card;
+  drawer.innerHTML=`<div class="hub-live-drawer-shell">
+    <div class="hub-live-drawer-head">
+      <div class="hub-live-heading"><span>INFORMAÇÕES AO VIVO</span><h3>${title}</h3><p>Dados atualizados da operação.</p></div>
+      <div class="hub-live-motion" aria-hidden="true"><span class="hub-live-motion-road"></span><i class="hub-live-motion-home">${hubIcon('home')}</i><i class="hub-live-motion-truck">${hubIcon('truck')}</i><i class="hub-live-motion-pin"></i></div>
+      <button class="hub-live-drawer-close" onclick="closeHubLivePanel(true)" aria-label="Fechar">×</button>
+    </div>
+    <div class="hub-live-drawer-body">${body||'<div class="hub-live-empty">Nenhum registro neste momento.</div>'}</div>
+    ${go?`<div class="hub-live-drawer-foot"><button class="soft-btn" onclick="go('${go}')">Abrir módulo completo</button></div>`:''}
+  </div>`;
+  drawer.classList.remove('closing');drawer.classList.add('open');
+  requestAnimationFrame(()=>drawer.classList.add('visible'));
+}
+
+function closeHubLivePanel(resetPin=true){
+  const drawer=document.getElementById('hubLiveDrawer');
+  hubCancelHoverTimers();
+  if(resetPin)__hubLivePinned=false;
+  __hubLiveCard=null;
+  document.querySelectorAll('.hub-stat-premium').forEach(x=>x.classList.remove('hub-selected'));
+  if(!drawer)return;
+  drawer.classList.remove('visible');drawer.classList.add('closing');
+  setTimeout(()=>{if(!drawer.classList.contains('visible')){drawer.classList.remove('open','closing');drawer.innerHTML=''}},240);
+}
+
+function hubArrivalParts(d){
+  const raw=d.arrival||isoNow();
+  const p=String(raw).split('T');
+  return {date:p[0]||TODAY,time:(p[1]||new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})).slice(0,5)};
+}
+function hubArrivalNow(){
+  const form=document.getElementById('hubArrivalForm');if(!form)return;
+  const now=isoNow().split('T');form.date.value=now[0];form.time.value=now[1].slice(0,5);
+}
+function hubArrivalDialog(id,returnToDetail=false){
+  const d=activeDeliveries().find(x=>x.id===id);if(!d)return;
+  const old=d.arrival;const p=hubArrivalParts(d);
+  openModal(`<div class="hub-arrival-head">${hubIcon('home')}<div><small>ENTREGA EM ROTA</small><h2 class="modal-title">${old?'Editar hora de chegada':'Registrar chegada ao cliente'}</h2><p class="modal-sub">Compra Nº ${d.purchaseNo} • ${esc(d.client)} • ${esc(d.bairro)}</p></div></div>
+    <form id="hubArrivalForm">
+      <div class="form-section hub-arrival-section"><h3>Horário de chegada</h3><div class="form-grid two">
+        <label>Data da chegada<input class="form-control" type="date" name="date" value="${p.date}" required></label>
+        <label>Hora da chegada<input class="form-control hub-time-input" type="time" name="time" value="${p.time}" required></label>
+        <label class="span-2">Endereço<input class="form-control" value="${esc(d.street)}, ${esc(d.number)} • ${esc(d.bairro)}" disabled></label>
+        <label class="span-2">Observação opcional<textarea class="form-control" name="obs" rows="3" placeholder="Ex.: cliente recebeu normalmente"></textarea></label>
+      </div><div class="hub-arrival-shortcut"><button type="button" class="soft-btn sm-btn" onclick="hubArrivalNow()">Usar hora atual</button>${old?`<span>Horário registrado: <b>${fmtDateTime(old)}</b></span>`:''}</div></div>
+      <div class="modal-actions"><button type="button" class="soft-btn" onclick="${returnToDetail?`openDelivery('${id}')`:'closeModal()'}">Cancelar</button><button class="blue-btn">${old?'Salvar alteração':'Salvar chegada'}</button></div>
+    </form>`,false);
+  hubStyleModal('blue');
+  document.getElementById('hubArrivalForm').onsubmit=e=>{
+    e.preventDefault();const x=Object.fromEntries(new FormData(e.target));const next=`${x.date}T${x.time}`;
+    d.arrival=next;
+    if(old){d.history.push([fmtTime(next),`Hora de chegada alterada de ${fmtTime(old)} para ${fmtTime(next)}${x.obs?` — ${x.obs}`:''}`]);audit('Hora de chegada editada',id)}
+    else{d.history.push([fmtTime(next),`Chegada ao cliente registrada${x.obs?` — ${x.obs}`:''}`]);audit('Chegada ao cliente',id)}
+    if(returnToDetail)openDelivery(id);else{closeModal();render()}
+    toast(old?'Hora de chegada atualizada':'Horário de chegada registrado')
+  }
+}
+
+function markArrival(id){hubArrivalDialog(id,true)}
+function deliveryActions(d){
+  let a=`<button class="soft-btn" onclick="closeModal()">Fechar</button>`;
+  if(d.status==='Na loja')a+=`<button class="blue-btn" onclick="closeModal();openCycleBuilder('${d.id}')">Adicionar à saída</button>`;
+  if(d.status==='Em rota')a+=`<button class="soft-btn" onclick="markArrival('${d.id}')">${d.arrival?'Editar hora de chegada':'Registrar hora de chegada'}</button><button class="green-btn" onclick="finishDelivery('${d.id}')">Finalizar entrega</button><button class="danger-btn" onclick="returnDelivery('${d.id}')">Devolvida</button>`;
+  if(['Programada','Reagendada'].includes(d.status))a+=`<button class="blue-btn" onclick="startScheduled('${d.id}')">Iniciar atendimento</button>`;
+  if(d.status==='Devolvida')a+=`<button class="blue-btn" onclick="nextActionDialog('${d.id}')">Definir próxima ação</button>`;
+  if(!['Finalizada','Cancelada'].includes(d.status))a+=`<button class="danger-btn" onclick="trashItem('delivery','${d.id}')">Mover para lixeira</button>`;
+  return a
+}
+function finishDelivery(id){
+  const d=activeDeliveries().find(x=>x.id===id);if(!d)return;
+  if(d.large&&d.trips.some(t=>t.status!=='Concluída'))return toast('Conclua todas as viagens da entrega grande antes de finalizar.');
+  if(!d.arrival){toast('Registre primeiro a hora em que chegou ao cliente.');return hubArrivalDialog(id,true)}
+  d.finalized=isoNow();d.status='Finalizada';if(d.trips.length)d.trips.forEach(t=>t.status='Concluída');d.history.push([fmtTime(d.finalized),'Entrega finalizada']);audit('Entrega finalizada',id);closeModal();render();toast('Entrega finalizada')
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHubLivePanel(true)});

@@ -1,0 +1,97 @@
+function hubRouteQueueRow(d){
+  const arrived=!!d.arrival;
+  return `<article class="hub-route-queue-row" onclick="hubArrivalDialog('${d.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();hubArrivalDialog('${d.id}')}">
+    <div class="hub-route-queue-no">${d.purchaseNo}</div>
+    <div class="hub-route-queue-main">
+      <div class="hub-route-queue-title"><b>${esc(d.client)}</b>${d.priority?'<span class="priority">PRIORIDADE</span>':''}</div>
+      <small>${esc(d.bairro)} • ${esc(d.street)}, ${esc(d.number)}</small>
+      <span>${d.cycleId||'Sem ciclo'} • saiu ${fmtTime(d.exit)}</span>
+    </div>
+    <div class="hub-route-queue-arrival">
+      <small>CHEGADA</small>
+      <b>${arrived?fmtTime(d.arrival):'—'}</b>
+    </div>
+    <div class="hub-route-queue-status">${statusBadge(d.status)}</div>
+    <div class="hub-route-queue-actions" onclick="event.stopPropagation()">
+      <button class="${arrived?'soft-btn':'blue-btn'} sm-btn" onclick="hubArrivalDialog('${d.id}')">${arrived?'Editar chegada':'Registrar chegada'}</button>
+      ${arrived?`<button class="green-btn sm-btn" onclick="hubFinishDelivery('${d.id}')">Finalizar</button>`:''}
+    </div>
+  </article>`
+}
+function hubInRoutePanel(inRoute){
+  return `<section class="panel hub-route-queue-panel">
+    <div class="panel-title"><div><h3>Entregas em rota</h3><p>Clique em qualquer entrega para registrar a hora em que chegou na casa do cliente.</p></div><span class="badge orange">${inRoute.length} em rota</span></div>
+    <div class="hub-route-queue-list">${inRoute.length?inRoute.map(hubRouteQueueRow).join(''):`<div class="hub-route-empty">${hubIcon('truck')}<b>Nenhuma entrega em rota agora</b><small>Quando uma saída for iniciada, as entregas aparecerão aqui.</small></div>`}</div>
+  </section>`
+}
+function hubCompactActions(){
+  return `<section class="panel hub-compact-actions"><div class="panel-title"><div><h3>Ações rápidas</h3><p>Atalhos da operação do dia.</p></div><span class="badge blue">CENTRAL</span></div>
+    <div class="hub-compact-grid">
+      ${hubQuick('plus','Registrar compra','Nova entrega','hubOpenRegister()','yellow')}
+      ${hubQuick('calendar','Agendar entrega','Data e horário','hubSchedule()','purple')}
+      ${hubQuick('route','Nova saída','Iniciar rota','hubNewRoute()','blue')}
+      ${hubQuick('return','Retorno','Fechar saída','hubFinishCycle()','green')}
+      ${hubQuick('gauge','Quilometragem','Abrir ou fechar KM','hubKm()','teal')}
+      ${hubQuick('money','Custos','Lançar despesa','hubCost()','orange')}
+    </div>
+  </section>`
+}
+function hubSearch(q){
+  const box=document.getElementById('hubSearchResults');
+  if(!box)return;
+  const term=String(q||'').trim().toLowerCase();
+  if(term.length<1){box.innerHTML='<div class="hub-search-hint">Pesquise por compra, cupom, DOC, caixa, cliente, telefone, bairro, endereço, entregador ou ciclo.</div>';return}
+  const rows=activeDeliveries().filter(d=>{
+    const driver=d.driverId?driverName(d.driverId):'';
+    const text=[d.purchaseNo,d.cupom,d.doc,d.pdv,d.client,d.phone,d.bairro,d.street,d.number,d.cycleId,driver,d.status].join(' ').toLowerCase();
+    return text.includes(term)
+  }).slice(0,12);
+  box.innerHTML=rows.length?`<div class="hub-search-results-list">${rows.map(d=>`<button class="hub-search-result" onclick="openDelivery('${d.id}')"><span class="hub-search-result-id">Nº ${d.purchaseNo}</span><span><b>${esc(d.client)}</b><small>${esc(d.bairro)} • Cupom ${esc(d.cupom||'—')} • DOC ${esc(d.doc||'—')} • ${d.cycleId||d.status}</small></span><span>${statusBadge(d.status)}</span><span class="hub-search-arrow">›</span></button>`).join('')}</div>`:`<div class="hub-search-hint">Nenhuma entrega encontrada para <b>${esc(q)}</b>.</div>`
+}
+function hubSearchPanel(){
+  return `<section class="panel hub-search-panel"><div class="hub-search-head"><div><h3>Pesquisar entregas</h3><p>Encontre rapidamente qualquer entrega sem sair da Central.</p></div><button class="link-btn" onclick="go('search')">Pesquisa avançada ›</button></div>
+    <div class="hub-search-box">${hubIcon('package')}<input id="hubSearchInput" placeholder="Compra, cupom, DOC, caixa, cliente, telefone, bairro, endereço, entregador ou ciclo..." oninput="hubSearch(this.value)" autocomplete="off"><button class="blue-btn" onclick="hubSearch(document.getElementById('hubSearchInput').value)">Pesquisar</button></div>
+    <div id="hubSearchResults"><div class="hub-search-hint">Digite qualquer informação da entrega para pesquisar.</div></div>
+  </section>`
+}
+function googleHubMapCentral(cycle){
+  if(!cycle)return `<div class="google-map-empty"><div class="stat-icon blue">${hubIcon('map')}</div><b>Nenhuma rota em andamento agora</b><small>Assim que uma nova saída for iniciada, o Google Maps aparecerá aqui.</small><button class="blue-btn" onclick="hubNewRoute()">Nova saída</button></div>`;
+  const ds=cycle.deliveryIds.map(id=>activeDeliveries().find(d=>d.id===id)).filter(Boolean);
+  const current=ds.find(d=>d.status==='Em rota')||ds.find(d=>d.status!=='Finalizada'&&d.status!=='Devolvida')||ds[ds.length-1];
+  const addr=current?`${current.street||''}, ${current.number||''}, ${current.bairro||''}, Nova Xavantina - MT`:state.settings.origin;
+  const src=`https://maps.google.com/maps?hl=pt-BR&z=14&output=embed&q=${encodeURIComponent(addr)}`;
+  return `<div class="google-route-wrap"><iframe class="google-map-frame" src="${src}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Google Maps da rota"></iframe><div class="google-map-badge">Google Maps</div></div>
+    <div class="route-sequence">${ds.map((d,i)=>`<span class="route-chip ${d.status==='Finalizada'?'done':d.status==='Em rota'?'active':''}"><b>${i+1}</b>${esc(d.bairro)} <small>${esc(d.client)}</small></span>`).join('')}</div>
+    <div class="map-meta"><div><small>Ciclo</small><strong>${cycle.id}</strong></div><div><small>Entregador</small><strong>${esc(driverName(cycle.driverId))}</strong></div><div><small>Veículo</small><strong>${esc(vehicleName(cycle.vehicleId))}</strong></div><div><small>Saída</small><strong>${fmtTime(cycle.exit)}</strong></div></div>
+    <div class="action-row route-actions"><button class="blue-btn" onclick="openGoogleMaps('${cycle.id}')">Abrir rota completa no Google Maps</button><button class="soft-btn" onclick="openCycle('${cycle.id}')">Gerenciar saída</button></div>`
+}
+function central(){
+  const ds=todayDs(),k=calcKPIs(ds);
+  const waiting=ds.filter(d=>d.status==='Na loja');
+  const inRoute=ds.filter(d=>d.status==='Em rota');
+  const critical=ds.filter(d=>d.status==='Devolvida'||sla(d).cls==='red');
+  const scheduled=ds.filter(d=>d.status==='Programada');
+  const closedKm=state.kmRecords.filter(x=>x.date===TODAY&&x.final!=null);
+  const openCycles=state.cycles.filter(c=>c.status==='Em andamento');
+  let selected=openCycles.find(c=>c.id===window.__hubCycle)||openCycles[0]||null;
+  if(selected)window.__hubCycle=selected.id;
+  const topDs=ds.slice(-5).reverse();
+  const waitPop=waiting.slice(0,6).map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • aguardando ${duration(mins(d.purchase))}`)).join('');
+  const routePop=inRoute.slice(0,8).map(d=>hubListItem('truck',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.cycleId||'sem ciclo'} • saída ${fmtTime(d.exit)}`,'',`<button class="mini-action" onclick="hubArrivalDialog('${d.id}')">${d.arrival?'Editar chegada':'Registrar chegada'}</button>`)).join('');
+  const attentionPop=critical.slice(0,6).map(d=>hubListItem('alert',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.status==='Devolvida'?(d.reason||'Devolvida'):sla(d).label}`)).join('');
+  const schedPop=scheduled.slice(0,6).map(d=>hubListItem('clock',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${fmtDateTime(d.scheduled)} • ${d.bairro}`)).join('');
+  const kmPop=closedKm.map(r=>{const v=state.vehicles.find(x=>x.id===r.vehicleId);return hubListItem('gauge',v?`${v.name} — ${v.plate}`:r.vehicleId,`${num(r.final-r.initial)} km rodados`)}).join('');
+  return `<div class="page-grid hub-central hub-central-v3">
+    <div class="hub-operation-strip"><div><span class="hub-operation-pulse ${state.closedDay?'closed':''}"></span><div><b>${state.closedDay?'Operação encerrada':'Operação do dia em andamento'}</b><small>${state.closedDay?`Último fechamento: ${fmtDateTime(state.lastClosing)}`:`Expediente ${state.settings.dayStart} → ${state.settings.dayEnd} • ${openCycles.length} saída(s) ativa(s)`}</small></div></div><button class="${state.closedDay?'green-btn':'danger-btn'}" onclick="hubOperation()">${state.closedDay?'▶ Iniciar / reabrir operação':'■ Encerrar operação do dia'}</button></div>
+    <div class="stats hub-stats">${hubLiveStat('package','blue','Aguardando coleta',waiting.length,'Compra(s) pronta(s) na loja','Entregas aguardando coleta',waitPop,'deliveries')}${hubLiveStat('truck','orange','Em rota',inRoute.length,`${openCycles.length} saída(s) em andamento`,'Entregas que estão na rua',routePop,'routes')}${hubLiveStat('alert','red','Precisa de atenção',critical.length,'Críticas e devolvidas','Itens que exigem ação',attentionPop,'deliveries')}${hubLiveStat('clock','blue','Programadas para hoje',scheduled.length,'Programações do dia','Agenda de entregas',schedPop,'deliveries')}${hubLiveStat('gauge','green','KM rodado hoje',`${num(k.km)} km`,`${closedKm.length} veículo(s) fechado(s)`,'Quilometragem fechada',kmPop,'fleet')}</div>
+    <div class="hub-workbench-grid">
+      ${hubCompactActions()}
+      ${hubInRoutePanel(inRoute)}
+      <section class="panel route-command-panel"><div class="panel-title"><div><h3>Rota do Entregador</h3><p>Google Maps e acompanhamento da saída selecionada.</p></div>${selected?'<span class="badge green">Em andamento</span>':'<span class="badge gray">Sem rota</span>'}</div>${openCycles.length>1?`<div class="cycle-tabs">${openCycles.map(c=>`<button class="${selected&&selected.id===c.id?'active':''}" onclick="hubSelectCycle('${c.id}')">${c.id}<small>${driverName(c.driverId)}</small></button>`).join('')}</div>`:''}${googleHubMapCentral(selected)}</section>
+    </div>
+    ${hubSearchPanel()}
+    ${openCycles.length?`<section class="panel"><div class="panel-title"><div><h3>Saídas ativas agora</h3><p>Acompanhe entregador, veículo e andamento de cada rota.</p></div><button class="link-btn" onclick="go('routes')">Ver todas ›</button></div><div class="active-cycle-grid">${openCycles.map(activeCycleHubCard).join('')}</div></section>`:''}
+    <div class="grid-2"><section class="panel"><div class="panel-title"><h3>Entregas do dia</h3><button class="link-btn" onclick="go('deliveries')">Ver todas ›</button></div>${deliveryTable(topDs)}</section><section class="panel"><div class="panel-title"><div><h3>Entregas e próximas ações</h3><p>Cada compra mostra uma linha do tempo clara.</p></div><button class="blue-btn sm-btn" onclick="hubOpenRegister()">＋ Registrar compra</button></div><div class="delivery-cards">${ds.slice(0,2).map(timelineDeliveryCard).join('')}</div></section></div>
+    ${dayClosureCard()}
+  </div>`
+}

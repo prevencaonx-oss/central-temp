@@ -1,0 +1,29 @@
+function hubNormalizeMapAddress(text){
+  const s=String(text||'').trim();
+  if(!s)return 'Nova Xavantina - MT, Brasil';
+  return /nova xavantina/i.test(s)?s:`${s}, Nova Xavantina - MT, Brasil`;
+}
+function googleHubMapCentral(cycle){
+  if(!cycle)return `<div class="google-map-empty"><div class="stat-icon blue">${hubIcon('map')}</div><b>Nenhuma rota em andamento agora</b><small>Assim que uma nova saída for iniciada, o Google Maps aparecerá aqui.</small><button class="blue-btn" onclick="hubNewRoute()">Nova saída</button></div>`;
+  const ds=hubSmartOrder(cycle).filter(d=>!['Cancelada'].includes(d.status));
+  const origin=hubNormalizeMapAddress(state.settings.origin||'Nilo Supermercado');
+  const points=ds.map(d=>hubNormalizeMapAddress(`${d.street||''}, ${d.number||''}, ${d.bairro||''}`)).filter(Boolean);
+  let src='';
+  if(points.length){
+    const daddr=points.map(p=>encodeURIComponent(p)).join('+to:')+`+to:${encodeURIComponent(origin)}`;
+    src=`https://maps.google.com/maps?hl=pt-BR&saddr=${encodeURIComponent(origin)}&daddr=${daddr}&dirflg=d&output=embed`;
+  }else{
+    src=`https://maps.google.com/maps?hl=pt-BR&z=15&output=embed&q=${encodeURIComponent(origin)}`;
+  }
+  return `<div class="google-route-wrap google-route-wrap-v12"><iframe class="google-map-frame" src="${src}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Google Maps da rota completa"></iframe><div class="google-map-badge">Google Maps • rota da saída</div></div><div class="route-sequence">${ds.map((d,i)=>`<button class="route-chip ${d.status==='Finalizada'?'done':d.status==='Em rota'?'active':''}" onclick="window.__hubSelectedRouteDeliveryId='${d.id}';hubArrivalDialog('${d.id}')"><b>${i+1}</b>${esc(d.bairro)} <small>${esc(d.client)}</small></button>`).join('')}</div><div class="map-meta"><div><small>Ciclo</small><strong>${cycle.id}</strong></div><div><small>Entregador</small><strong>${esc(driverName(cycle.driverId))}</strong></div><div><small>Veículo</small><strong>${esc(vehicleName(cycle.vehicleId))}</strong></div><div><small>Saída</small><strong>${fmtTime(cycle.exit)}</strong></div></div><div class="action-row route-actions"><button class="blue-btn" onclick="openGoogleMaps('${cycle.id}')">Abrir rota completa no Google Maps</button><button class="soft-btn" onclick="openCycle('${cycle.id}')">Gerenciar saída</button></div>`
+}
+function openGoogleMaps(cid){
+  const c=state.cycles.find(x=>x.id===cid);if(!c)return;
+  const ds=hubSmartOrder(c).filter(d=>!['Cancelada'].includes(d.status));
+  const origin=hubNormalizeMapAddress(state.settings.origin||'Nilo Supermercado');
+  const points=ds.map(d=>hubNormalizeMapAddress(`${d.street||''}, ${d.number||''}, ${d.bairro||''}`)).filter(Boolean);
+  const destination=origin;
+  const waypoints=points.map(encodeURIComponent).join('|');
+  const url=`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${waypoints?`&waypoints=${waypoints}`:''}&travelmode=driving`;
+  window.open(url,'_blank');
+}

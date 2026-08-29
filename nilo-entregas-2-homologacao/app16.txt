@@ -1,0 +1,114 @@
+function hubKmDraftCapture(){
+  const d=window.__hubKmFleetDraft;if(!d)return;
+  d.route.forEach(id=>{const el=document.getElementById(`hubKmInitial_${id}`);if(el)d.initials[id]=Number(el.value||0)});
+}
+function hubKmVehicleChoice(v,kind,selected){
+  const fn=kind==='route'?'Rota':'Fechamento';
+  return `<button type="button" class="hub-km-choice ${selected?'selected':''}" onclick="hubKmToggle('${kind}','${v.id}')">
+    <span class="hub-km-choice-check">${selected?'✓':''}</span>
+    <span class="hub-km-choice-icon">${hubIcon(v.type==='Moto'?'truck':'gauge')}</span>
+    <span><b>${esc(v.name)}</b><small>${esc(v.plate)} • ${esc(v.type||'Veículo')}</small></span>
+    <em>${fn}</em>
+  </button>`
+}
+function hubKmToggle(kind,id){
+  hubKmDraftCapture();
+  const d=window.__hubKmFleetDraft;if(!d)return;
+  const arr=d[kind];const i=arr.indexOf(id);if(i>=0)arr.splice(i,1);else arr.push(id);
+  if(kind==='route'&&arr.includes(id)&&!d.initials[id]){const v=state.vehicles.find(x=>x.id===id);d.initials[id]=Number(v?.odometer||0)}
+  hubRenderKmFleetModal();
+}
+function hubRenderKmFleetModal(){
+  const d=window.__hubKmFleetDraft;if(!d)return;
+  const vehicles=state.vehicles.filter(v=>v.active);
+  const body=document.getElementById('modalBody');if(!body)return;
+  body.innerHTML=`
+    <div class="hub-km-title"><span>QUILOMETRAGEM & FROTA</span><h2 class="modal-title">Abrir expediente de quilometragem</h2><p class="modal-sub">Selecione somente os veículos que serão usados na rota e os que deverão ser conferidos no fechamento do dia.</p></div>
+    <div class="hub-km-select-section"><div class="hub-km-step"><i>1</i><div><b>Veículos que vão para a rota</b><small>Você pode selecionar um ou mais veículos.</small></div></div><div class="hub-km-choice-grid">${vehicles.map(v=>hubKmVehicleChoice(v,'route',d.route.includes(v.id))).join('')}</div></div>
+    <div class="hub-km-select-section"><div class="hub-km-step"><i>2</i><div><b>Veículos para o fechamento do dia</b><small>Selecione os veículos cuja quilometragem deverá ser encerrada no fim da operação.</small></div></div><div class="hub-km-choice-grid">${vehicles.map(v=>hubKmVehicleChoice(v,'closing',d.closing.includes(v.id))).join('')}</div></div>
+    <div class="hub-km-select-section"><div class="hub-km-step"><i>3</i><div><b>KM inicial dos veículos da rota</b><small>Informe a leitura inicial de cada veículo selecionado.</small></div></div>${d.route.length?`<div class="hub-km-initial-grid">${d.route.map(id=>{const v=state.vehicles.find(x=>x.id===id);return `<label class="hub-km-initial-card"><span><b>${esc(v?.name||id)}</b><small>${esc(v?.plate||'')}</small></span><div><input id="hubKmInitial_${id}" type="number" min="0" value="${Number(d.initials[id]??v?.odometer??0)}"><em>km</em></div></label>`}).join('')}</div>`:`<div class="soft-note">Selecione pelo menos um veículo para a rota.</div>`}</div>
+    <div class="hub-km-selection-summary"><div><small>ROTA</small><strong>${d.route.length} veículo(s)</strong></div><div><small>FECHAMENTO</small><strong>${d.closing.length} veículo(s)</strong></div><div><small>REGRA</small><strong>Somente os selecionados</strong></div></div>
+    <div class="modal-actions"><button type="button" class="soft-btn" onclick="closeModal()">Cancelar</button><button type="button" class="blue-btn" onclick="hubKmSaveFleetOpen()">Abrir expediente</button></div>`;
+  hubStyleModal('teal');
+}
+function hubKmSaveFleetOpen(){
+  hubKmDraftCapture();const d=window.__hubKmFleetDraft;if(!d)return;
+  if(!d.route.length)return toast('Selecione pelo menos um veículo para a rota.');
+  if(!d.closing.length)return toast('Selecione pelo menos um veículo para o fechamento do dia.');
+  state.settings.routeVehicleIds=[...d.route];state.settings.closingVehicleIds=[...d.closing];
+  d.route.forEach(vehicleId=>{
+    const initial=Number(d.initials[vehicleId]||0);if(initial<0)return;
+    const existing=state.kmRecords.find(r=>r.date===TODAY&&r.vehicleId===vehicleId&&r.final==null);
+    if(existing)existing.initial=initial;else state.kmRecords.push({id:uid('KM'),date:TODAY,vehicleId,initial,final:null});
+  });
+  audit('Veículos do expediente definidos',`Rota: ${d.route.join(', ')} | Fechamento: ${d.closing.join(', ')}`);
+  window.__hubKmFleetDraft=null;closeModal();render();toast('Veículos do expediente configurados');
+}
+function openKm(vehicleId){
+  const active=state.vehicles.filter(v=>v.active);if(!active.length)return toast('Nenhum veículo ativo cadastrado.');
+  const openToday=state.kmRecords.filter(r=>r.date===TODAY&&r.final==null).map(r=>r.vehicleId);
+  const routeSaved=Array.isArray(state.settings.routeVehicleIds)?state.settings.routeVehicleIds:[];
+  const closeSaved=Array.isArray(state.settings.closingVehicleIds)?state.settings.closingVehicleIds:[];
+  const first=vehicleId||routeSaved[0]||openToday[0]||active[0].id;
+  const route=[...new Set(routeSaved.length?routeSaved:(openToday.length?openToday:[first]))].filter(id=>active.some(v=>v.id===id));
+  const closing=[...new Set(closeSaved.length?closeSaved:route)].filter(id=>active.some(v=>v.id===id));
+  const initials={};route.forEach(id=>{const r=state.kmRecords.find(x=>x.date===TODAY&&x.vehicleId===id&&x.final==null),v=state.vehicles.find(x=>x.id===id);initials[id]=Number(r?.initial??v?.odometer??0)});
+  window.__hubKmFleetDraft={route,closing,initials};
+  openModal('<div></div>',true);hubRenderKmFleetModal();
+}
+
+function central(){
+  const ds=todayDs(),k=calcKPIs(ds);
+  const waiting=ds.filter(d=>d.status==='Na loja');
+  const inRoute=ds.filter(d=>d.status==='Em rota');
+  const critical=ds.filter(d=>d.status==='Devolvida'||sla(d).cls==='red');
+  const scheduled=ds.filter(d=>d.status==='Programada');
+  const closedKm=state.kmRecords.filter(x=>x.date===TODAY&&x.final!=null);
+  const openCycles=state.cycles.filter(c=>c.status==='Em andamento');
+  let selected=openCycles.find(c=>c.id===window.__hubCycle)||openCycles[0]||null;if(selected)window.__hubCycle=selected.id;
+  const topDs=ds.slice(-5).reverse();
+  const todayCycles=state.cycles.filter(c=>c.date===TODAY);
+  const usedVehicleIds=[...new Set(todayCycles.map(c=>c.vehicleId).filter(Boolean))];
+  const usedVehicles=usedVehicleIds.map(id=>state.vehicles.find(v=>v.id===id)).filter(Boolean);
+  const delivered=ds.filter(d=>d.status==='Finalizada').length;
+  const deliveredPct=ds.length?Math.round(delivered/ds.length*100):0;
+  const dayCosts=state.costs.filter(c=>c.date===TODAY).reduce((a,c)=>a+Number(c.amount||0),0);
+  const grossGains=ds.reduce((a,d)=>a+Number(d.tax||0),0);
+  const refunds=ds.reduce((a,d)=>a+Number(d.refund||0),0);
+  const dayGains=grossGains-refunds;
+  const delayed=ds.filter(d=>!d.scheduled&&mins(d.purchase,d.arrival||d.finalized||isoNow())>Number(state.settings.slaClient||210));
+  const dayResult=dayGains-dayCosts;
+  const waitPop=waiting.slice(0,6).map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • aguardando ${duration(mins(d.purchase))}`)).join('');
+  const routePop=inRoute.slice(0,8).map(d=>hubListItem('truck',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.cycleId||'sem ciclo'} • saída ${fmtTime(d.exit)}`,'',`<button class="mini-action" onclick="hubArrivalDialog('${d.id}')">${d.arrival?'Editar chegada':'Registrar chegada'}</button>`)).join('');
+  const attentionPop=critical.slice(0,6).map(d=>hubListItem('alert',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.status==='Devolvida'?(d.reason||'Devolvida'):sla(d).label}`)).join('');
+  const schedPop=scheduled.slice(0,6).map(d=>hubListItem('clock',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${fmtDateTime(d.scheduled)} • ${d.bairro}`)).join('');
+  const kmPop=closedKm.map(r=>{const v=state.vehicles.find(x=>x.id===r.vehicleId);return hubListItem('gauge',v?`${v.name} — ${v.plate}`:r.vehicleId,`${num(r.final-r.initial)} km rodados`)}).join('');
+  const vehiclePop=usedVehicles.map(v=>{const cs=todayCycles.filter(c=>c.vehicleId===v.id);const active=cs.some(c=>c.status==='Em andamento');return hubListItem('truck',`${v.name} — ${v.plate}`,`${cs.length} ciclo(s) hoje • ${active?'em operação':'sem ciclo ativo'}`)}).join('');
+  const deliveredPop=ds.filter(d=>d.status==='Finalizada').slice(-8).reverse().map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • entregue ${fmtTime(d.finalized||d.arrival)}`,'green')).join('');
+  const costPop=state.costs.filter(c=>c.date===TODAY).map(c=>hubListItem('gauge',c.category,`${vehicleName(c.vehicleId)} • ${money(c.amount)}`)).join('');
+  const gainPop=`${hubListItem('package','Taxas cobradas no dia',money(grossGains))}${hubListItem('alert','Reembolsos/devoluções',money(refunds))}${hubListItem('package','Ganhos líquidos',money(dayGains),'green')}`;
+  const delayedPop=delayed.slice(0,8).map(d=>hubListItem('alert',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${duration(mins(d.purchase,d.arrival||d.finalized||isoNow()))}`,'red')).join('');
+  const resultPop=`${hubListItem('package','Ganhos do dia',money(dayGains),'green')}${hubListItem('gauge','Custos do dia',money(dayCosts),'red')}${hubListItem(dayResult>=0?'package':'alert',dayResult>=0?'Lucro operacional':'Prejuízo operacional',money(Math.abs(dayResult)),dayResult>=0?'green':'red')}`;
+  return `<div class="page-grid hub-central hub-central-v8 hub-central-v9 hub-central-v10">
+    ${hubOperationConsole()}
+    <div class="stats hub-stats hub-stats-v9">
+      ${hubLiveStat('package','blue','Aguardando coleta',waiting.length,'Compra(s) pronta(s) na loja','Entregas aguardando coleta',waitPop,'deliveries')}
+      ${hubLiveStat('truck','orange','Em rota',inRoute.length,`${openCycles.length} saída(s) em andamento`,'Entregas que estão na rua',routePop,'routes')}
+      ${hubLiveStat('alert','red','Precisa de atenção',critical.length,'Críticas e devolvidas','Itens que exigem ação',attentionPop,'deliveries')}
+      ${hubLiveStat('clock','blue','Programadas para hoje',scheduled.length,'Programações do dia','Agenda de entregas',schedPop,'deliveries')}
+      ${hubLiveStat('gauge','green','KM rodado hoje',`${num(k.km)} km`,`${closedKm.length} veículo(s) fechado(s)`,'Quilometragem fechada',kmPop,'fleet')}
+      ${hubLiveStat('truck','teal','Veículos em uso hoje',usedVehicleIds.length,`${usedVehicleIds.length} veículo(s) movimentado(s)`,'Veículos utilizados hoje',vehiclePop,'fleet')}
+      ${hubLiveStat('<span class="hub-kpi-check">✓</span>','green','Compras entregues',`${deliveredPct}%`,`${delivered} de ${ds.length} compras do dia`,'Compras já entregues',deliveredPop,'performance')}
+    </div>
+    <div class="stats hub-finance-stats">
+      ${hubLiveStat('<span class="hub-kpi-money">R$</span>','purple','Custo do dia',money(dayCosts),'Combustível, manutenção e outros','Custos registrados hoje',costPop||'<div class="empty">Nenhum custo registrado hoje.</div>','performance')}
+      ${hubLiveStat('<span class="hub-kpi-money">R$</span>','green','Ganhos do dia',money(dayGains),'Taxas líquidas de entrega','Ganhos do dia',gainPop,'performance')}
+      ${hubLiveStat('clock','red','Entregas atrasadas',delayed.length,'Fora do SLA do dia','Entregas atrasadas',delayedPop||'<div class="empty">Nenhuma entrega atrasada.</div>','deliveries')}
+      ${hubLiveStat(dayResult>=0?'<span class="hub-kpi-check">✓</span>':'alert',dayResult>=0?'green':'red','Resultado do dia',money(dayResult),dayResult>=0?'LUCRO':'PREJUÍZO','Resultado financeiro da operação',resultPop,'performance')}
+    </div>
+    <div class="hub-workbench-grid">${hubCompactActions()}${hubInRoutePanel(inRoute)}<section class="panel route-command-panel"><div class="panel-title"><div><h3>Rota do Entregador</h3><p>Google Maps e acompanhamento da saída selecionada.</p></div>${selected?'<span class="badge green">Em andamento</span>':'<span class="badge gray">Sem rota</span>'}</div>${openCycles.length>1?`<div class="cycle-tabs">${openCycles.map(c=>`<button class="${selected&&selected.id===c.id?'active':''}" onclick="hubSelectCycle('${c.id}')">${c.id}<small>${driverName(c.driverId)}</small></button>`).join('')}</div>`:''}${googleHubMapCentral(selected)}</section></div>
+    ${openCycles.length?`<section class="panel hub-active-cycles-compact"><div class="panel-title"><div><h3>Saídas ativas agora</h3><p>Acompanhe entregador, veículo e andamento.</p></div><button class="link-btn" onclick="go('routes')">Ver todas ›</button></div><div class="active-cycle-grid">${openCycles.map(activeCycleHubCard).join('')}</div></section>`:''}
+    <div class="grid-2 hub-bottom-grid"><section class="panel"><div class="panel-title"><h3>Entregas do dia</h3><button class="link-btn" onclick="go('deliveries')">Ver todas ›</button></div>${deliveryTable(topDs)}</section><section class="panel hub-next-actions-panel"><div class="panel-title"><div><h3>Entregas e próximas ações</h3><p>Cada compra mostra uma linha do tempo clara.</p></div><button class="blue-btn sm-btn" onclick="hubOpenRegister()">＋ Registrar compra</button></div><div class="delivery-cards">${ds.slice(0,2).map(timelineDeliveryCard).join('')}</div></section></div>
+    ${hubVehicleMotionStage()}
+  </div>`
+}

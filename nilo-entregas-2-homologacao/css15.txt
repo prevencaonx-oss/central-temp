@@ -1,0 +1,1 @@
+.approved-central>.hub-operation-console{display:none!important}.approved-central{gap:10px!important}.approved-shell{margin-top:0!important}@media(min-width:1201px){.approved-central{padding-top:0!important}}

@@ -1,0 +1,79 @@
+function hubLiveStat(icon,cls,label,value,detail,popTitle,popBody,goPage=''){
+  const title=hubPack(popTitle),body=hubPack(popBody),go=hubPack(goPage);
+  return `<button class="stat-card hub-stat hub-stat-premium hub-stat-v9" type="button"
+    onmouseenter="hubLiveEnter(this,'${title}','${body}','${go}')"
+    onmouseleave="hubLiveLeave(this)"
+    onclick="hubLiveClick(event,this,'${title}','${body}','${go}')">
+    <div class="stat-icon ${cls}">${typeof icon==='string'&&icon.startsWith('<')?icon:hubIcon(icon)}</div>
+    <div class="hub-stat-copy"><span class="label">${label}</span><strong class="value">${value}</strong><small>${detail||''}</small></div>
+    <span class="hub-live-orbit"><i></i></span>
+    <span class="hub-stat-routefx"><span class="hub-stat-road"></span><span class="hub-stat-truck">${hubIcon('truck')}</span></span>
+  </button>`
+}
+
+function hubGreetingText(){
+  const h=new Date().getHours();
+  if(h>=5&&h<12)return 'Bom dia';
+  if(h>=12&&h<18)return 'Boa tarde';
+  return 'Boa noite';
+}
+function hubUpdateGreeting(){
+  const el=document.querySelector('.hello');if(!el)return;
+  el.innerHTML=`Olá, Prevenção! <span class="hub-greeting-period">${hubGreetingText()}</span> <span class="hub-wave" aria-label="acenando">👋</span>`;
+}
+if(!window.__hubGreetingTimer){window.__hubGreetingTimer=setInterval(hubUpdateGreeting,60000)}
+setTimeout(hubUpdateGreeting,0);
+
+function hubVehicleMotionStage(){
+  return `<section class="hub-motion-stage" aria-label="Operação de entregas em movimento">
+    <div class="hub-motion-copy"><span>OPERAÇÃO EM MOVIMENTO</span><b>NILO ENTREGAS</b><small>Coleta • rota • cliente • retorno</small></div>
+    <div class="hub-motion-scene" aria-hidden="true">
+      <div class="hub-motion-sky"><i></i><i></i><i></i></div>
+      <div class="hub-motion-roadline"></div>
+      <span class="hub-motion-home">${hubIcon('home')}</span>
+      <span class="hub-motion-pin hub-motion-pin-1"></span><span class="hub-motion-pin hub-motion-pin-2"></span><span class="hub-motion-pin hub-motion-pin-3"></span>
+      <span class="hub-motion-van">${hubIcon('truck')}<em></em></span>
+      <span class="hub-motion-destination">${hubIcon('package')}</span>
+    </div>
+  </section>`
+}
+
+function central(){
+  const ds=todayDs(),k=calcKPIs(ds);
+  const waiting=ds.filter(d=>d.status==='Na loja');
+  const inRoute=ds.filter(d=>d.status==='Em rota');
+  const critical=ds.filter(d=>d.status==='Devolvida'||sla(d).cls==='red');
+  const scheduled=ds.filter(d=>d.status==='Programada');
+  const closedKm=state.kmRecords.filter(x=>x.date===TODAY&&x.final!=null);
+  const openCycles=state.cycles.filter(c=>c.status==='Em andamento');
+  let selected=openCycles.find(c=>c.id===window.__hubCycle)||openCycles[0]||null;if(selected)window.__hubCycle=selected.id;
+  const topDs=ds.slice(-5).reverse();
+  const todayCycles=state.cycles.filter(c=>c.date===TODAY);
+  const usedVehicleIds=[...new Set(todayCycles.map(c=>c.vehicleId).filter(Boolean))];
+  const usedVehicles=usedVehicleIds.map(id=>state.vehicles.find(v=>v.id===id)).filter(Boolean);
+  const delivered=ds.filter(d=>d.status==='Finalizada').length;
+  const deliveredPct=ds.length?Math.round(delivered/ds.length*100):0;
+  const waitPop=waiting.slice(0,6).map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • aguardando ${duration(mins(d.purchase))}`)).join('');
+  const routePop=inRoute.slice(0,8).map(d=>hubListItem('truck',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.cycleId||'sem ciclo'} • saída ${fmtTime(d.exit)}`,'',`<button class="mini-action" onclick="hubArrivalDialog('${d.id}')">${d.arrival?'Editar chegada':'Registrar chegada'}</button>`)).join('');
+  const attentionPop=critical.slice(0,6).map(d=>hubListItem('alert',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.status==='Devolvida'?(d.reason||'Devolvida'):sla(d).label}`)).join('');
+  const schedPop=scheduled.slice(0,6).map(d=>hubListItem('clock',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${fmtDateTime(d.scheduled)} • ${d.bairro}`)).join('');
+  const kmPop=closedKm.map(r=>{const v=state.vehicles.find(x=>x.id===r.vehicleId);return hubListItem('gauge',v?`${v.name} — ${v.plate}`:r.vehicleId,`${num(r.final-r.initial)} km rodados`)}).join('');
+  const vehiclePop=usedVehicles.map(v=>{const cs=todayCycles.filter(c=>c.vehicleId===v.id);const active=cs.some(c=>c.status==='Em andamento');return hubListItem('truck',`${v.name} — ${v.plate}`,`${cs.length} ciclo(s) hoje • ${active?'em operação':'sem ciclo ativo'}`)}).join('');
+  const deliveredPop=ds.filter(d=>d.status==='Finalizada').slice(-8).reverse().map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • entregue ${fmtTime(d.finalized||d.arrival)}`,'green')).join('');
+  return `<div class="page-grid hub-central hub-central-v8 hub-central-v9">
+    ${hubOperationConsole()}
+    <div class="stats hub-stats hub-stats-v9">
+      ${hubLiveStat('package','blue','Aguardando coleta',waiting.length,'Compra(s) pronta(s) na loja','Entregas aguardando coleta',waitPop,'deliveries')}
+      ${hubLiveStat('truck','orange','Em rota',inRoute.length,`${openCycles.length} saída(s) em andamento`,'Entregas que estão na rua',routePop,'routes')}
+      ${hubLiveStat('alert','red','Precisa de atenção',critical.length,'Críticas e devolvidas','Itens que exigem ação',attentionPop,'deliveries')}
+      ${hubLiveStat('clock','blue','Programadas para hoje',scheduled.length,'Programações do dia','Agenda de entregas',schedPop,'deliveries')}
+      ${hubLiveStat('gauge','green','KM rodado hoje',`${num(k.km)} km`,`${closedKm.length} veículo(s) fechado(s)`,'Quilometragem fechada',kmPop,'fleet')}
+      ${hubLiveStat('truck','teal','Veículos em uso hoje',usedVehicleIds.length,`${usedVehicleIds.length} veículo(s) movimentado(s)`,'Veículos utilizados hoje',vehiclePop,'fleet')}
+      ${hubLiveStat('<span class="hub-kpi-check">✓</span>','green','Compras entregues',`${deliveredPct}%`,`${delivered} de ${ds.length} compras do dia`,'Compras já entregues',deliveredPop,'performance')}
+    </div>
+    <div class="hub-workbench-grid">${hubCompactActions()}${hubInRoutePanel(inRoute)}<section class="panel route-command-panel"><div class="panel-title"><div><h3>Rota do Entregador</h3><p>Google Maps e acompanhamento da saída selecionada.</p></div>${selected?'<span class="badge green">Em andamento</span>':'<span class="badge gray">Sem rota</span>'}</div>${openCycles.length>1?`<div class="cycle-tabs">${openCycles.map(c=>`<button class="${selected&&selected.id===c.id?'active':''}" onclick="hubSelectCycle('${c.id}')">${c.id}<small>${driverName(c.driverId)}</small></button>`).join('')}</div>`:''}${googleHubMapCentral(selected)}</section></div>
+    ${openCycles.length?`<section class="panel hub-active-cycles-compact"><div class="panel-title"><div><h3>Saídas ativas agora</h3><p>Acompanhe entregador, veículo e andamento.</p></div><button class="link-btn" onclick="go('routes')">Ver todas ›</button></div><div class="active-cycle-grid">${openCycles.map(activeCycleHubCard).join('')}</div></section>`:''}
+    <div class="grid-2 hub-bottom-grid"><section class="panel"><div class="panel-title"><h3>Entregas do dia</h3><button class="link-btn" onclick="go('deliveries')">Ver todas ›</button></div>${deliveryTable(topDs)}</section><section class="panel hub-next-actions-panel"><div class="panel-title"><div><h3>Entregas e próximas ações</h3><p>Cada compra mostra uma linha do tempo clara.</p></div><button class="blue-btn sm-btn" onclick="hubOpenRegister()">＋ Registrar compra</button></div><div class="delivery-cards">${ds.slice(0,2).map(timelineDeliveryCard).join('')}</div></section></div>
+    ${hubVehicleMotionStage()}
+  </div>`
+}

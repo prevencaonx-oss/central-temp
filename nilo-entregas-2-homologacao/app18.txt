@@ -1,0 +1,50 @@
+function hubSelectedRouteDelivery(){
+  const all=activeDeliveries().filter(d=>d.status==='Em rota');
+  const id=window.__hubSelectedRouteDeliveryId;
+  return all.find(d=>d.id===id)||all[0]||null;
+}
+function hubRouteDeliverySelect(id){
+  window.__hubSelectedRouteDeliveryId=id||null;
+  const d=hubSelectedRouteDelivery();
+  const btn=document.getElementById('hubRouteArrivalBtn');
+  const info=document.getElementById('hubRouteSelectedInfo');
+  if(btn){btn.disabled=!d;btn.textContent=d?(d.arrival?'Editar hora de chegada':'Registrar hora de chegada'):'Selecione uma compra'}
+  if(info)info.innerHTML=d?`<b>Compra Nº ${esc(d.purchaseNo)} — ${esc(d.client)}</b><small>${esc(d.bairro)} • ${esc(d.street)}, ${esc(d.number)} • saída ${fmtTime(d.exit)}${d.arrival?` • chegada ${fmtTime(d.arrival)}`:''}</small>`:'<small>Nenhuma entrega em rota selecionada.</small>';
+}
+function hubOpenSelectedArrival(){
+  const d=hubSelectedRouteDelivery();
+  if(!d)return toast('Selecione uma compra que esteja em rota.');
+  hubArrivalDialog(d.id);
+}
+function hubInRoutePanel(inRoute){
+  const activeCycles=state.cycles.filter(c=>c.status==='Em andamento').sort((a,b)=>String(a.exit).localeCompare(String(b.exit)));
+  const ids=new Set(),ordered=[];
+  activeCycles.forEach(c=>hubSmartOrder(c).forEach(d=>{if(d.status==='Em rota'&&!ids.has(d.id)){ids.add(d.id);ordered.push(d)}}));
+  inRoute.forEach(d=>{if(!ids.has(d.id)){ids.add(d.id);ordered.push(d)}});
+  const current=ordered.find(d=>d.id===window.__hubSelectedRouteDeliveryId)||ordered[0]||null;
+  if(current)window.__hubSelectedRouteDeliveryId=current.id;
+  return `<section class="panel hub-route-queue-panel hub-route-queue-v12">
+    <div class="panel-title"><div><h3>Entregas em rota</h3><p>Escolha qualquer compra que esteja na rua para registrar ou editar a hora de chegada ao cliente.</p></div><span class="badge orange">${ordered.length} em rota</span></div>
+    ${ordered.length?`<div class="hub-route-pickbar"><label><span>Selecione a compra</span><select id="hubRouteDeliverySelect" onchange="hubRouteDeliverySelect(this.value)">${ordered.map(d=>`<option value="${d.id}" ${current&&current.id===d.id?'selected':''}>Compra Nº ${esc(d.purchaseNo)} — ${esc(d.client)} — ${esc(d.bairro)}</option>`).join('')}</select></label><div id="hubRouteSelectedInfo" class="hub-route-selected-info">${current?`<b>Compra Nº ${esc(current.purchaseNo)} — ${esc(current.client)}</b><small>${esc(current.bairro)} • ${esc(current.street)}, ${esc(current.number)} • saída ${fmtTime(current.exit)}${current.arrival?` • chegada ${fmtTime(current.arrival)}`:''}</small>`:''}</div><button id="hubRouteArrivalBtn" class="blue-btn" onclick="hubOpenSelectedArrival()">${current&&current.arrival?'Editar hora de chegada':'Registrar hora de chegada'}</button></div>`:''}
+    <div class="hub-route-queue-list">${ordered.length?ordered.map(hubRouteQueueRow).join(''):`<div class="hub-route-empty">${hubIcon('truck')}<b>Nenhuma entrega em rota agora</b><small>Quando uma saída for iniciada, todas as entregas aparecerão aqui.</small></div>`}</div>
+  </section>`
+}
+function googleHubMapCentral(cycle){
+  if(!cycle)return `<div class="google-map-empty"><div class="stat-icon blue">${hubIcon('map')}</div><b>Nenhuma rota em andamento agora</b><small>Assim que uma nova saída for iniciada, o Google Maps aparecerá aqui.</small><button class="blue-btn" onclick="hubNewRoute()">Nova saída</button></div>`;
+  const ds=hubSmartOrder(cycle).filter(d=>!['Cancelada'].includes(d.status));
+  const origin=state.settings.origin||'Nilo Supermercado, Nova Xavantina - MT';
+  const points=ds.map(d=>`${d.street||''}, ${d.number||''}, ${d.bairro||''}, Nova Xavantina - MT`).filter(Boolean);
+  let src;
+  if(points.length){
+    const daddr=points.concat([origin]).map((p,i)=>i===0?p:`to:${p}`).join('+');
+    src=`https://maps.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(daddr)}&output=embed`;
+  }else{
+    src=`https://maps.google.com/maps?hl=pt-BR&z=14&output=embed&q=${encodeURIComponent(origin)}`;
+  }
+  return `<div class="google-route-wrap google-route-wrap-v12"><iframe class="google-map-frame" src="${src}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Google Maps da rota completa"></iframe><div class="google-map-badge">Google Maps • rota da saída</div></div><div class="route-sequence">${ds.map((d,i)=>`<button class="route-chip ${d.status==='Finalizada'?'done':d.status==='Em rota'?'active':''}" onclick="window.__hubSelectedRouteDeliveryId='${d.id}';hubArrivalDialog('${d.id}')"><b>${i+1}</b>${esc(d.bairro)} <small>${esc(d.client)}</small></button>`).join('')}</div><div class="map-meta"><div><small>Ciclo</small><strong>${cycle.id}</strong></div><div><small>Entregador</small><strong>${esc(driverName(cycle.driverId))}</strong></div><div><small>Veículo</small><strong>${esc(vehicleName(cycle.vehicleId))}</strong></div><div><small>Saída</small><strong>${fmtTime(cycle.exit)}</strong></div></div><div class="action-row route-actions"><button class="blue-btn" onclick="openGoogleMaps('${cycle.id}')">Abrir rota completa no Google Maps</button><button class="soft-btn" onclick="openCycle('${cycle.id}')">Gerenciar saída</button></div>`
+}
+function hubLiveEnter(card,title,body,go){
+  if(!hubFineHover())return;
+  hubCancelHoverTimers();
+  __hubHoverOpenTimer=setTimeout(()=>{__hubLivePinned=false;openHubLivePanel(card,title,body,go,'hover')},3000);
+}

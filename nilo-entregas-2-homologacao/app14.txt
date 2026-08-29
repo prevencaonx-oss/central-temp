@@ -1,0 +1,77 @@
+function hubLiveStat(icon,cls,label,value,detail,popTitle,popBody,goPage=''){
+  const title=hubPack(popTitle),body=hubPack(popBody),go=hubPack(goPage);
+  return `<button class="stat-card hub-stat hub-stat-premium hub-stat-v8" type="button"
+    onmouseenter="hubLiveEnter(this,'${title}','${body}','${go}')"
+    onmouseleave="hubLiveLeave(this)"
+    onclick="hubLiveClick(event,this,'${title}','${body}','${go}')">
+    <div class="stat-icon ${cls}">${typeof icon==='string'&&icon.startsWith('<')?icon:hubIcon(icon)}</div>
+    <div class="hub-stat-copy"><span class="label">${label}</span><strong class="value">${value}</strong><small>${detail||''}</small></div>
+    <span class="hub-live-orbit"><i></i></span>
+    <span class="hub-stat-routefx"><span class="hub-stat-road"></span><span class="hub-stat-truck">${hubIcon('truck')}</span></span>
+  </button>`
+}
+
+function hubStartOperation(){
+  if(!state.closedDay)return toast('A operação do dia já está em andamento.');
+  state.closedDay=false;
+  const last=state.closings.at(-1);if(last&&!last.reopenedAt)last.reopenedAt=isoNow();
+  audit('Operação do dia iniciada / reaberta',TODAY);render();toast('Operação iniciada')
+}
+function hubEndOperation(){
+  if(state.closedDay)return toast('A operação do dia já está encerrada.');
+  closeDayDialog();hubStyleModal('green')
+}
+function hubCentralSearch(){
+  const input=document.getElementById('hubCentralSearch');
+  const q=String(input?.value||'').trim().toUpperCase();
+  if(!q){input?.focus();return toast('Digite uma informação para pesquisar.');}
+  const ds=activeDeliveries().filter(d=>[d.id,d.purchaseNo,d.cupom,d.doc,d.pdv,d.client,d.phone,d.bairro,d.street,d.number,d.cycleId,d.driverId?driverName(d.driverId):'',d.status].some(v=>String(v||'').toUpperCase().includes(q)));
+  openModal(`<div class="hub-search-modal-head">${hubIcon('package')}<div><small>PESQUISA DA CENTRAL</small><h2 class="modal-title">Resultados para “${esc(q)}”</h2><p class="modal-sub">${ds.length} entrega(s) encontrada(s).</p></div></div>${ds.length?deliveryTable(ds.slice(0,30)):`<div class="empty">Nenhuma entrega encontrada.</div>`}<div class="modal-actions"><button class="soft-btn" onclick="closeModal()">Fechar</button><button class="blue-btn" onclick="closeModal();go('search')">Pesquisa avançada</button></div>`,true);hubStyleModal('blue')
+}
+function hubOperationConsole(){
+  return `<section class="hub-operation-console">
+    <button class="hub-op-btn hub-op-start ${!state.closedDay?'is-current':''}" onclick="hubStartOperation()" ${!state.closedDay?'aria-disabled="true"':''}>
+      <span class="hub-op-dot"></span><span><b>Iniciar operação</b><small>${state.closedDay?'Liberado':'Em andamento'}</small></span>
+    </button>
+    <button class="hub-op-btn hub-op-end ${state.closedDay?'is-disabled':''}" onclick="hubEndOperation()" ${state.closedDay?'aria-disabled="true"':''}>
+      ${hubIcon('stop')}<span><b>Encerrar operação</b><small>${state.closedDay?'Encerrada':'Fechamento do dia'}</small></span>
+    </button>
+    <div class="hub-central-searchbar">${hubIcon('package')}<input id="hubCentralSearch" placeholder="Pesquisar entrega: compra, cupom, DOC, caixa, cliente, telefone, bairro, entregador ou ciclo..." onkeydown="if(event.key==='Enter')hubCentralSearch()"><button onclick="hubCentralSearch()">Pesquisar</button></div>
+  </section>`
+}
+
+function hubKmVehicleHero(v,mode='open',record=null){
+  return `<div class="hub-km-hero"><div class="hub-km-icon">${hubIcon('gauge')}</div><div class="hub-km-vehicle"><small>VEÍCULO</small><h3>${esc(v.name)} <span>• ${esc(v.plate)}</span></h3><p>${esc(v.type||'Veículo da frota')}</p></div><div class="hub-km-current"><small>${mode==='open'?'Odômetro cadastrado':'KM inicial'}</small><strong>${num(mode==='open'?v.odometer:record.initial)} km</strong></div></div>`
+}
+function openKm(vehicleId){
+  const v=state.vehicles.find(x=>x.id===vehicleId);if(!v)return;
+  openModal(`<div class="hub-km-title"><span>QUILOMETRAGEM & FROTA</span><h2 class="modal-title">Abrir expediente de quilometragem</h2><p class="modal-sub">Registre o odômetro no início do expediente para calcular KM diário, por ciclo e por entrega.</p></div>${hubKmVehicleHero(v,'open')}<form id="kmOpen"><div class="form-section hub-km-form"><h3>Leitura inicial</h3><div class="form-grid two"><label>KM inicial do expediente<input class="form-control hub-km-big-input" name="initial" type="number" min="0" value="${v.odometer}" required></label><div class="hub-km-tip"><b>Conferência rápida</b><small>Digite exatamente o valor mostrado no painel do veículo antes da primeira saída.</small></div></div></div><div class="modal-actions"><button type="button" class="soft-btn" onclick="closeModal()">Cancelar</button><button class="blue-btn">Abrir expediente</button></div></form>`,false);hubStyleModal('teal');
+  document.getElementById('kmOpen').onsubmit=e=>{e.preventDefault();const initial=Number(new FormData(e.target).get('initial'));if(initial<0)return toast('Informe um KM válido.');state.kmRecords.push({id:uid('KM'),date:TODAY,vehicleId,initial,final:null});audit('KM inicial registrado',vehicleId);closeModal();render();toast('Expediente de KM aberto')}
+}
+function closeKm(id){
+  const r=state.kmRecords.find(x=>x.id===id),v=state.vehicles.find(x=>x.id===r?.vehicleId);if(!r||!v)return;
+  openModal(`<div class="hub-km-title"><span>QUILOMETRAGEM & FROTA</span><h2 class="modal-title">Fechar quilometragem do dia</h2><p class="modal-sub">Informe o odômetro final para calcular automaticamente o total rodado.</p></div>${hubKmVehicleHero(v,'close',r)}<form id="kmClose"><div class="form-section hub-km-form"><h3>Leitura final</h3><div class="form-grid two"><label>KM inicial<input class="form-control" value="${r.initial}" disabled></label><label>KM final<input class="form-control hub-km-big-input" name="final" type="number" min="${r.initial}" required></label></div><div id="hubKmPreview" class="hub-km-preview"><small>Total rodado</small><strong>— km</strong></div></div><div class="modal-actions"><button type="button" class="soft-btn" onclick="closeModal()">Cancelar</button><button class="blue-btn">Fechar quilometragem</button></div></form>`,false);hubStyleModal('teal');
+  const f=document.querySelector('#kmClose [name="final"]');f.addEventListener('input',()=>{const x=Number(f.value||0),p=document.getElementById('hubKmPreview');p.innerHTML=`<small>Total rodado</small><strong>${x>=r.initial?num(x-r.initial):'—'} km</strong>`});
+  document.getElementById('kmClose').onsubmit=e=>{e.preventDefault();const final=Number(new FormData(e.target).get('final'));if(final<r.initial)return toast('KM final não pode ser menor que o inicial.');r.final=final;v.odometer=final;audit('KM diário fechado',v.id);closeModal();render();toast('Quilometragem fechada')}
+}
+
+function hubCycleModalMap(c){
+  const ds=hubSmartOrder(c);const current=ds.find(d=>d.status==='Em rota')||ds[0];
+  const addr=current?`${current.street||''}, ${current.number||''}, ${current.bairro||''}, Nova Xavantina - MT`:state.settings.origin;
+  const src=`https://maps.google.com/maps?hl=pt-BR&z=14&output=embed&q=${encodeURIComponent(addr)}`;
+  return `<div class="hub-cycle-map"><iframe src="${src}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Google Maps do ciclo ${c.id}"></iframe><span class="hub-cycle-map-label">Google Maps</span></div><div class="route-sequence hub-cycle-sequence">${ds.map((d,i)=>`<span class="route-chip ${d.status==='Finalizada'?'done':d.status==='Em rota'?'active':''}"><b>${i+1}</b>${esc(d.bairro)} <small>${esc(d.client)}</small></span>`).join('')}</div>`
+}
+function openCycle(id){
+  const c=state.cycles.find(x=>x.id===id);if(!c)return;const ds=c.deliveryIds.map(x=>activeDeliveries().find(d=>d.id===x)).filter(Boolean);
+  openModal(`<div class="hub-cycle-modal-head"><div><span>CICLO / SAÍDA</span><h2 class="modal-title">${c.id}</h2><p class="modal-sub">${statusBadge(c.status)} • ${esc(driverName(c.driverId))} • ${esc(vehicleName(c.vehicleId))}</p></div><button class="soft-btn sm-btn" onclick="openGoogleMaps('${id}')">Abrir no Google Maps ↗</button></div>${hubCycleModalMap(c)}<div class="hub-cycle-metrics"><div><small>Entregas na rota</small><strong>${ds.length}</strong></div><div><small>Entregues</small><strong>${ds.filter(d=>d.status==='Finalizada').length}</strong></div><div><small>Em rota</small><strong>${ds.filter(d=>d.status==='Em rota').length}</strong></div><div><small>Saída</small><strong>${fmtTime(c.exit)}</strong></div></div><div class="form-section hub-cycle-deliveries"><h3>Entregas do ciclo</h3>${deliveryTable(ds)}</div><div class="modal-actions"><button class="soft-btn" onclick="closeModal()">Fechar</button>${c.status==='Em andamento'?`<button class="soft-btn" onclick="manageCycle('${id}')">Gerenciar entregas</button><button class="green-btn" onclick="closeCycle('${id}')">Registrar retorno / fechar ciclo</button>`:''}</div>`,true);hubStyleModal('blue')
+}
+
+function central(){
+  const ds=todayDs(),k=calcKPIs(ds);const waiting=ds.filter(d=>d.status==='Na loja');const inRoute=ds.filter(d=>d.status==='Em rota');const critical=ds.filter(d=>d.status==='Devolvida'||sla(d).cls==='red');const scheduled=ds.filter(d=>d.status==='Programada');const closedKm=state.kmRecords.filter(x=>x.date===TODAY&&x.final!=null);const openCycles=state.cycles.filter(c=>c.status==='Em andamento');let selected=openCycles.find(c=>c.id===window.__hubCycle)||openCycles[0]||null;if(selected)window.__hubCycle=selected.id;const topDs=ds.slice(-5).reverse();
+  const waitPop=waiting.slice(0,6).map(d=>hubListItem('package',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • aguardando ${duration(mins(d.purchase))}`)).join('');
+  const routePop=inRoute.slice(0,8).map(d=>hubListItem('truck',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.cycleId||'sem ciclo'} • saída ${fmtTime(d.exit)}`,'',`<button class="mini-action" onclick="hubArrivalDialog('${d.id}')">${d.arrival?'Editar chegada':'Registrar chegada'}</button>`)).join('');
+  const attentionPop=critical.slice(0,6).map(d=>hubListItem('alert',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${d.bairro} • ${d.status==='Devolvida'?(d.reason||'Devolvida'):sla(d).label}`)).join('');
+  const schedPop=scheduled.slice(0,6).map(d=>hubListItem('clock',`Compra Nº ${d.purchaseNo} — ${d.client}`,`${fmtDateTime(d.scheduled)} • ${d.bairro}`)).join('');
+  const kmPop=closedKm.map(r=>{const v=state.vehicles.find(x=>x.id===r.vehicleId);return hubListItem('gauge',v?`${v.name} — ${v.plate}`:r.vehicleId,`${num(r.final-r.initial)} km rodados`)}).join('');
+  return `<div class="page-grid hub-central hub-central-v8">${hubOperationConsole()}<div class="stats hub-stats">${hubLiveStat('package','blue','Aguardando coleta',waiting.length,'Compra(s) pronta(s) na loja','Entregas aguardando coleta',waitPop,'deliveries')}${hubLiveStat('truck','orange','Em rota',inRoute.length,`${openCycles.length} saída(s) em andamento`,'Entregas que estão na rua',routePop,'routes')}${hubLiveStat('alert','red','Precisa de atenção',critical.length,'Críticas e devolvidas','Itens que exigem ação',attentionPop,'deliveries')}${hubLiveStat('clock','blue','Programadas para hoje',scheduled.length,'Programações do dia','Agenda de entregas',schedPop,'deliveries')}${hubLiveStat('gauge','green','KM rodado hoje',`${num(k.km)} km`,`${closedKm.length} veículo(s) fechado(s)`,'Quilometragem fechada',kmPop,'fleet')}</div><div class="hub-workbench-grid">${hubCompactActions()}${hubInRoutePanel(inRoute)}<section class="panel route-command-panel"><div class="panel-title"><div><h3>Rota do Entregador</h3><p>Google Maps e acompanhamento da saída selecionada.</p></div>${selected?'<span class="badge green">Em andamento</span>':'<span class="badge gray">Sem rota</span>'}</div>${openCycles.length>1?`<div class="cycle-tabs">${openCycles.map(c=>`<button class="${selected&&selected.id===c.id?'active':''}" onclick="hubSelectCycle('${c.id}')">${c.id}<small>${driverName(c.driverId)}</small></button>`).join('')}</div>`:''}${googleHubMapCentral(selected)}</section></div>${openCycles.length?`<section class="panel hub-active-cycles-compact"><div class="panel-title"><div><h3>Saídas ativas agora</h3><p>Acompanhe entregador, veículo e andamento.</p></div><button class="link-btn" onclick="go('routes')">Ver todas ›</button></div><div class="active-cycle-grid">${openCycles.map(activeCycleHubCard).join('')}</div></section>`:''}<div class="grid-2 hub-bottom-grid"><section class="panel"><div class="panel-title"><h3>Entregas do dia</h3><button class="link-btn" onclick="go('deliveries')">Ver todas ›</button></div>${deliveryTable(topDs)}</section><section class="panel hub-next-actions-panel"><div class="panel-title"><div><h3>Entregas e próximas ações</h3><p>Cada compra mostra uma linha do tempo clara.</p></div><button class="blue-btn sm-btn" onclick="hubOpenRegister()">＋ Registrar compra</button></div><div class="delivery-cards">${ds.slice(0,2).map(timelineDeliveryCard).join('')}</div></section></div></div>`
+}

@@ -1,0 +1,4 @@
+function approvedTuneHeader(){const t=document.getElementById('pageTitle'),s=document.getElementById('pageSubtitle');if(t)t.textContent='Central de Operações';if(s)s.textContent='Aqui você acompanha tudo o que importa para manter as entregas em movimento.';if(typeof hubUpdateGreeting==='function')hubUpdateGreeting()}
+const __approvedCentralFinal=central;
+central=function(){setTimeout(approvedTuneHeader,0);return __approvedCentralFinal()};
+setTimeout(approvedTuneHeader,0);
